@@ -271,24 +271,7 @@ const UI = (() => {
     Calculator.calcular();
   }
 
-  // ── Tipo de tarjeta ──────────────────────────────────────────────────────────
 
-  function selectCardType(type, el) {
-    State.set('cardType', type);
-
-    // FIX: también actualizar aria-checked en todos los botones
-    document.querySelectorAll('.type-btn').forEach(b => {
-      b.classList.remove('active');
-      b.setAttribute('aria-checked', 'false');
-    });
-    el.classList.add('active');
-    el.setAttribute('aria-checked', 'true');
-
-    const cuotasRow = document.getElementById('cuotasRow');
-    if (cuotasRow) cuotasRow.hidden = type !== 'credito';
-
-    Calculator.calcular();
-  }
 
   // ── Link / URL parsing ────────────────────────────────────────────────────────
   // FIX PRINCIPAL: trim(), mensaje cuando campo vacío, manejo robusto
@@ -373,7 +356,6 @@ const UI = (() => {
     document.getElementById('pais')?.addEventListener('change', onPaisChange);
     document.getElementById('customDolar')?.addEventListener('input', Calculator.calcular);
     document.getElementById('envio')?.addEventListener('input', Calculator.calcular);
-    document.getElementById('cuotas')?.addEventListener('change', Calculator.calcular);
     document.getElementById('cantidad')?.addEventListener('input', e => onCantidadChange(e.target.value));
 
     // FIX: tanto el input como el botón ANALIZAR usan la misma función con trim()
@@ -392,7 +374,6 @@ const UI = (() => {
     selectDolar,
     selectStore,
     selectBanco,
-    selectCardType,
     switchMoneda,
     handleTabKey,
     onCantidadChange,

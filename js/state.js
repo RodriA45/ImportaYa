@@ -37,13 +37,14 @@ const State = (() => {
       usdt: 1,
     },
 
+    // Tasas de cambio globales (1 USD = ? XXX) para otros países
+    tasasGlobales: {},
+
     pais:        'AR',
     tienda:      'aliexpress',
     monedaInput: 'usd',
-    cardType:    'debito',
     banco:       'galicia',
     cantidad:    1,
-    cuotas:      1,
     lastFetch:   null,
   };
 

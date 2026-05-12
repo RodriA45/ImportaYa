@@ -115,47 +115,11 @@
       </div>
     </section>
 
-    <!-- TARJETA Y BANCO -->
-    <section class="card" id="arSection" aria-labelledby="tarjeta-title">
-      <h2 class="card-title" id="tarjeta-title"><span aria-hidden="true">💳</span> Tipo de tarjeta</h2>
-      <div class="card-types" role="radiogroup" aria-label="Tipo de tarjeta">
-        <div class="type-btn active" role="radio" aria-checked="true" tabindex="0"
-          onclick="UI.selectCardType('debito', this)"
-          onkeydown="if(event.key==='Enter'||event.key===' ')UI.selectCardType('debito',this)">
-          <div class="type-name">Débito</div>
-          <div class="type-desc">Cuenta propia</div>
-        </div>
-        <div class="type-btn" role="radio" aria-checked="false" tabindex="0"
-          onclick="UI.selectCardType('credito', this)"
-          onkeydown="if(event.key==='Enter'||event.key===' ')UI.selectCardType('credito',this)">
-          <div class="type-name">Crédito</div>
-          <div class="type-desc">Cuotas disponibles</div>
-        </div>
-        <div class="type-btn" role="radio" aria-checked="false" tabindex="0"
-          onclick="UI.selectCardType('prepaga', this)"
-          onkeydown="if(event.key==='Enter'||event.key===' ')UI.selectCardType('prepaga',this)">
-          <div class="type-name">Prepaga</div>
-          <div class="type-desc">Brubank, Naranja X…</div>
-        </div>
-      </div>
-
-      <div id="cuotasRow" hidden style="margin-top:1.25rem">
-        <div class="field">
-          <label for="cuotas">Cuotas <span class="chip chip-purple">CRÉDITO</span></label>
-          <select id="cuotas">
-            <option value="1">1 cuota (sin interés)</option>
-            <option value="3">3 cuotas</option>
-            <option value="6">6 cuotas</option>
-            <option value="12">12 cuotas</option>
-            <option value="18">18 cuotas</option>
-            <option value="24">24 cuotas</option>
-          </select>
-          <p class="note" style="margin-top:.5rem">Los intereses mostrados son promedios del mercado. Consultá la tabla vigente de tu banco.</p>
-        </div>
-      </div>
-
-      <div style="margin-top:1.25rem">
-        <label>Banco / Entidad</label>
+    <!-- BANCO -->
+    <section class="card" id="arSection" aria-labelledby="banco-title">
+      <h2 class="card-title" id="banco-title"><span aria-hidden="true">🏦</span> Banco / Billetera Virtual</h2>
+      <div>
+        <label class="sr-only">Banco / Entidad</label>
         <div class="banks-grid" id="bancosGrid" role="radiogroup" aria-label="Banco o entidad financiera"></div>
       </div>
     </section>
@@ -163,20 +127,11 @@
     <!-- ENVÍO -->
     <section class="card" aria-labelledby="envio-title">
       <h2 class="card-title" id="envio-title"><span aria-hidden="true">✈️</span> Envío y aduana</h2>
-      <div class="grid grid--2">
-        <div class="field">
-          <label for="envio">Costo de envío (USD)</label>
-          <div class="input-group">
-            <span class="input-prefix" aria-hidden="true">$</span>
-            <input type="number" id="envio" value="0" min="0" step="0.5" onfocus="this.select()">
-          </div>
-        </div>
-        <div class="field">
-          <label for="peso">Peso estimado del paquete (kg)</label>
-          <div class="input-group">
-            <span class="input-prefix" aria-hidden="true">⚖</span>
-            <input type="number" id="peso" value="0.5" min="0.1" step="0.1" onfocus="this.select()">
-          </div>
+      <div class="field">
+        <label for="envio">Costo de envío (USD)</label>
+        <div class="input-group">
+          <span class="input-prefix" aria-hidden="true">$</span>
+          <input type="number" id="envio" value="0" min="0" step="0.5" onfocus="this.select()">
         </div>
       </div>
       <p class="note" id="aduanaInfo" style="margin-top:.75rem">
@@ -253,13 +208,7 @@
           <span class="breakdown-value neg" id="br-aduana">Franquicia OK</span>
         </div>
 
-        <div class="breakdown-row" id="br-row-intereses">
-          <span class="breakdown-label">
-            Intereses cuotas
-            <span class="impuesto-tag tag-purple" id="br-cuotasTag"></span>
-          </span>
-          <span class="breakdown-value neg" id="br-intereses">—</span>
-        </div>
+
 
         <div class="breakdown-row breakdown-row--total">
           <span class="breakdown-label breakdown-label--total">TOTAL</span>

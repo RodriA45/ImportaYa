@@ -42,7 +42,7 @@ const Calculator = (() => {
 
   // ── Cálculo Argentina ────────────────────────────────────────────────────────
 
-  function calcularAR(precioUSD, envioUSD, cantidad, cuotas) {
+  function calcularAR(precioUSD, envioUSD, cantidad) {
     const cot          = State.getCotizacionActiva();
     const cotizaciones = State.get('cotizaciones');
     const tipoDolar    = State.get('dolarSeleccionado');
@@ -53,24 +53,21 @@ const Calculator = (() => {
     const totalUSD = precioUSD * cantidad + envioUSD;
     const baseARS  = totalUSD * cot;
 
-    // FIX: Impuesto PAIS + Percepción AFIP solo se suman EXPLÍCITAMENTE
-    // cuando el usuario usa Blue, MEP, CCL, Cripto o Manual.
-    // Con "Tarjeta", la cotización ya los incluye — agregarlos de nuevo sería
-    // cobrarlos doble.
+    // FIX: Impuesto PAIS + Percepción AFIP aplican SOLO para pagos a cotización Oficial o Tarjeta.
+    // Para Dólar Blue, MEP, CCL, o Cripto, el usuario paga con dólares propios y no aplican impuestos.
     let impPais    = 0;
     let percepcion = 0;
     let nota       = '';
 
     if (tipoDolar === 'tarjeta') {
-      // La cotización tarjeta ya embebió PAIS + AFIP — no se agregan separado.
       nota = 'incluidos en cotización tarjeta';
-    } else {
-      // Con otras cotizaciones el usuario paga los impuestos por fuera (en la
-      // declaración anual). Los mostramos informativamente sobre base oficial.
+    } else if (tipoDolar === 'oficial') {
       const baseOficialARS = totalUSD * cotOficial;
       impPais    = baseOficialARS * 0.30;
       percepcion = baseOficialARS * 0.45;
       nota       = `base oficial $${fmt(cotOficial)}/USD`;
+    } else {
+      nota = 'No aplican para esta cotización';
     }
 
     // Recargo bancario
@@ -78,30 +75,22 @@ const Calculator = (() => {
     const recargoPct  = bancoActivo.recargo ?? 0;
     const recargoBanco = baseARS * recargoPct;
 
-    // Aduana
+    // Aduana (SIEMPRE se liquida al tipo de cambio Oficial en Argentina)
     let aduana    = 0;
     let aduanaTag = '';
     if (totalUSD > 200) {
-      aduana    = (totalUSD - 200) * 0.50 * cot;
+      aduana    = (totalUSD - 200) * 0.50 * cotOficial;
       aduanaTag = `50% sobre USD ${fmtDec(totalUSD - 200)}`;
     } else {
       aduanaTag = `< USD 200 ✓`;
     }
 
-    // Intereses de cuotas
-    let intereses = 0;
-    if (State.get('cardType') === 'credito' && cuotas > 1) {
-      const pct = CONFIG.interesCuotas[cuotas] ?? 0;
-      intereses = baseARS * pct;
-    }
-
-    const total = baseARS + impPais + percepcion + recargoBanco + aduana + intereses;
+    const total = baseARS + impPais + percepcion + recargoBanco + aduana;
 
     return {
       totalUSD, baseARS, impPais, percepcion, nota,
       recargoBanco, recargoPct,
       aduana, aduanaTag,
-      intereses, cuotas,
       total, cotUsada: cot, cotOficial,
       tipoDolar,
     };
@@ -114,7 +103,11 @@ const Calculator = (() => {
     if (!cfg) return null;
 
     const totalUSD  = precioUSD * cantidad + envioUSD;
-    const cotLocal  = CONFIG.fallbackLocal[pais] ?? 1;
+    
+    // Obtener cotización real si existe, sino fallback
+    const tasasGlobales = State.get('tasasGlobales') || {};
+    const cotLocal  = tasasGlobales[cfg.moneda] ?? (CONFIG.fallbackLocal[pais] ?? 1);
+    
     const totalLocal = totalUSD * cotLocal;
     const ivaLocal   = totalLocal * (cfg.iva / 100);
     const arancelLocal = totalUSD > cfg.franquicia
@@ -134,18 +127,17 @@ const Calculator = (() => {
     if (el) el.textContent = text;
   }
 
-  function renderBreakdownAR(res, paisCfg, cuotas) {
+  function renderBreakdownAR(res, paisCfg) {
     const {
       totalUSD, baseARS, impPais, percepcion, nota,
       recargoBanco, recargoPct, aduana, aduanaTag,
-      intereses, total, cotUsada, tipoDolar,
+      total, cotUsada, tipoDolar,
     } = res;
 
     document.getElementById('br-row-iva').hidden = true;
     document.getElementById('br-row-impPais').hidden = false;
     document.getElementById('br-row-percepcion').hidden = false;
     document.getElementById('br-row-banco').hidden = false;
-    document.getElementById('br-row-intereses').hidden = false;
 
     document.getElementById('aduanaInfo').innerHTML = '📬 Franquicia Puerta a Puerta (correo): <strong>USD 200 libres de impuesto</strong>. Superar ese monto genera un arancel del 50% sobre el excedente.';
     document.getElementById('warningBox').textContent = '⚠️ Estimación basada en la normativa vigente en Argentina (2025). Los valores pueden variar según banco, fecha y regulaciones de AFIP. Válido para compras personales vía Correo Argentino / Puerta a Puerta (hasta USD 200 de franquicia).';
@@ -171,15 +163,9 @@ const Calculator = (() => {
     const aduanaTagEl = document.getElementById('br-aduanaTag');
     if (aduanaTagEl) aduanaTagEl.textContent = aduanaTag;
 
-    setText('br-intereses', intereses > 0 ? `+ $${fmt(intereses)}` : '—');
     setText('br-total',     `$${fmt(total)}`);
     setText('totalPesos',   `$${fmt(total)}`);
-
-    if (State.get('cardType') === 'credito' && cuotas > 1) {
-      setText('totalCurrency', `${paisCfg.moneda} · $${fmt(total / cuotas)} × ${cuotas} cuotas`);
-    } else {
-      setText('totalCurrency', `${paisCfg.moneda} — ${paisCfg.monedaNombre}`);
-    }
+    setText('totalCurrency', `${paisCfg.moneda} — ${paisCfg.monedaNombre}`);
 
     if (totalUSD > 200) {
       UI.showAlert('⚠️ Superás los USD 200 de franquicia. Se aplicará arancel del 50% sobre el excedente (Puerta a Puerta / Correo Argentino).', 'warn');
@@ -195,7 +181,6 @@ const Calculator = (() => {
     document.getElementById('br-row-impPais').hidden = true;
     document.getElementById('br-row-percepcion').hidden = true;
     document.getElementById('br-row-banco').hidden = true;
-    document.getElementById('br-row-intereses').hidden = true;
 
     document.getElementById('aduanaInfo').innerHTML = `📬 Franquicia aduanera: <strong>USD ${paisCfg.franquicia} libres de impuesto</strong>. Superar ese monto genera un arancel del ${paisCfg.arancel * 100}% sobre el excedente.`;
     document.getElementById('warningBox').textContent = `⚠️ Estimación basada en las tasas generales de ${paisCfg.nombre}. Verifica con tu entidad aduanera para detalles específicos.`;
@@ -214,7 +199,6 @@ const Calculator = (() => {
       ? `>${paisCfg.franquicia} USD`
       : `< ${paisCfg.franquicia} USD`;
 
-    setText('br-intereses',  '—');
     setText('br-total',      `${paisCfg.simbolo}${fmt(total)}`);
     setText('totalPesos',    `${paisCfg.simbolo}${fmt(total)}`);
     setText('totalCurrency', `${paisCfg.moneda} — ${paisCfg.monedaNombre}`);
@@ -231,10 +215,9 @@ const Calculator = (() => {
     const precioUSD = getPrecioUSD();
     const envioUSD  = parseFloat(document.getElementById('envio')?.value)   || 0;
     const cantidad  = parseInt(document.getElementById('cantidad')?.value)   || 1;
-    const cuotas    = parseInt(document.getElementById('cuotas')?.value)     || 1;
 
     if (pais === 'AR') {
-      renderBreakdownAR(calcularAR(precioUSD, envioUSD, cantidad, cuotas), paisCfg, cuotas);
+      renderBreakdownAR(calcularAR(precioUSD, envioUSD, cantidad), paisCfg);
     } else {
       const res = calcularOtroPais(pais, precioUSD, envioUSD, cantidad);
       if (res) renderBreakdownOtro(res, pais, paisCfg);

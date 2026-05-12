@@ -21,7 +21,6 @@ Para **Argentina**, el precio final incluye:
 | Percepción AFIP (RG 4815) | 45% sobre base oficial |
 | Recargo bancario | Según entidad (configurable) |
 | Arancel de aduana | 50% sobre excedente de USD 200 franquicia |
-| Intereses de cuotas | Promedio de mercado por cuota |
 
 Para otros países latinoamericanos: conversión local + IVA + arancel básico.
 
@@ -33,8 +32,7 @@ Para otros países latinoamericanos: conversión local + IVA + arancel básico.
 - 🛒 **8 tiendas incluidas** — AliExpress, Temu, Shein, Amazon, eBay, Etsy, Wish, Zara y "Otra".
 - 🔗 **Detección por link** — Pegá la URL del producto y detecta la tienda automáticamente.
 - 💰 **8 monedas de entrada** — USD, EUR, CNY (Yuan), GBP, BRL, MXN, USDT y BTC.
-- 💳 **Tarjetas débito, crédito y prepaga** — Con selección de cuotas y banco.
-- 🏦 **14 bancos argentinos** — Galicia, Santander, BBVA, Macro, Nación, Brubank, Naranja X, Mercado Pago, Lemon, Ualá y más.
+- 🏦 **14 bancos y billeteras virtuales** — Galicia, Santander, BBVA, Macro, Nación, Brubank, Naranja X, Mercado Pago, Lemon, Ualá y más.
 - 🌍 **10 países** — Argentina, México, Colombia, Chile, Perú, Uruguay, Brasil, Paraguay, Bolivia y Ecuador.
 - 📦 **Cálculo de aduana** — Alerta automática si superás los USD 200 de franquicia.
 
@@ -70,7 +68,7 @@ importaya/
 ### Flujo de datos
 
 ```
-DolarAPI / Frankfurter / CoinGecko
+DolarAPI / ExchangeRate-API / CoinGecko
            ↓
          api.js          ← fetch en tiempo real
            ↓
@@ -115,7 +113,7 @@ python3 -m http.server 8080
 | API | Uso | Límite free |
 |---|---|---|
 | [DolarAPI](https://dolarapi.com) | Cotizaciones USD en Argentina | Sin límite |
-| [Frankfurter](https://frankfurter.app) | Tasas EUR, CNY, GBP, BRL, MXN | Sin límite |
+| [ExchangeRate-API](https://www.exchangerate-api.com) | Tasas globales (EUR, COP, CLP, etc) | Sin límite |
 | [CoinGecko](https://coingecko.com/api) | Precio BTC/USD | 30 req/min |
 
 Si alguna API no responde, la app usa los valores de fallback definidos en `config.js`.

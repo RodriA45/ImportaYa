@@ -122,19 +122,7 @@
 .imp-tag.gold   { background: var(--gold-dim);   color: var(--gold); }
 .imp-tag.green  { background: var(--green-dim);  color: var(--green); }
 
-/* ── Cuota banner ── */
-.cuota-banner {
-  margin-top: 18px;
-  background: var(--purple-dim);
-  border: 1px solid rgba(167,139,250,.3);
-  border-radius: var(--r-md);
-  padding: 14px 18px;
-  font-size: 14px;
-  color: var(--purple);
-  text-align: center;
-  font-family: var(--font-mono);
-  letter-spacing: 1px;
-}
+
 
 /* ── Disclaimer ── */
 .disclaimer {

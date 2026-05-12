@@ -88,13 +88,4 @@ const CONFIG = {
     { id: 'btc',  simbolo: '₿',  label: 'BTC',  nombre: 'Bitcoin' },
   ],
 
-  // ── Intereses de cuotas (promedio bancario AR) ───────────
-  interesCuotas: {
-    1:  0,
-    3:  0.05,
-    6:  0.13,
-    12: 0.32,
-    18: 0.58,
-    24: 0.90,
-  },
 };

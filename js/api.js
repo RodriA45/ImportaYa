@@ -23,14 +23,39 @@ const API = (() => {
     }
   }
 
-  function actualizarHora() {
+  function actualizarHora(error = false) {
     const el = document.getElementById('lastUpdate');
-    if (!el) return;
+    const badge = document.querySelector('.live-badge');
+    if (!el || !badge) return;
     const now = new Date();
     const hh  = String(now.getHours()).padStart(2, '0');
     const mm  = String(now.getMinutes()).padStart(2, '0');
     const ss  = String(now.getSeconds()).padStart(2, '0');
     el.textContent = `· ${hh}:${mm}:${ss}`;
+    
+    if (error) {
+      badge.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
+      badge.style.color = '#fca5a5';
+      const dot = badge.querySelector('.live-dot');
+      if (dot) {
+        dot.style.backgroundColor = '#ef4444';
+        dot.style.boxShadow = '0 0 8px rgba(239, 68, 68, 0.6)';
+      }
+      badge.childNodes.forEach(n => {
+        if (n.nodeType === Node.TEXT_NODE && n.textContent.trim()) n.textContent = ' Modo Offline ';
+      });
+    } else {
+      badge.style.backgroundColor = '';
+      badge.style.color = '';
+      const dot = badge.querySelector('.live-dot');
+      if (dot) {
+        dot.style.backgroundColor = '';
+        dot.style.boxShadow = '';
+      }
+      badge.childNodes.forEach(n => {
+        if (n.nodeType === Node.TEXT_NODE && n.textContent.trim()) n.textContent = ' Cotizaciones en tiempo real ';
+      });
+    }
   }
 
   // FIX: mapeo con toLowerCase() para cubrir cualquier capitalización
@@ -66,7 +91,7 @@ const API = (() => {
       if (changed) {
         State.set('cotizaciones', cotizaciones);
         State.set('lastFetch', new Date());
-        actualizarHora();
+        actualizarHora(false);
       }
 
       // FIX: siempre re-renderizar aunque no haya cambios, para sacar los "…"
@@ -76,6 +101,7 @@ const API = (() => {
     } catch (err) {
       console.warn('[API] dolarapi.com no disponible:', err.message);
       // El State ya tiene los fallback de state.js — solo re-renderizar
+      actualizarHora(true);
       UI.renderDolarStrip();
       Calculator.calcular();
     }
@@ -83,22 +109,25 @@ const API = (() => {
 
   async function fetchTasas() {
     try {
-      const data = await fetchJSON(
-        'https://api.frankfurter.dev/v1/latest?base=USD&symbols=EUR,CNY,GBP,BRL,MXN'
-      );
-      const tasas = State.get('tasasAUSD');
-      if (data.rates) {
-        // frankfurter devuelve "cuántos XXX por 1 USD" → invertir
+      const data = await fetchJSON('https://open.er-api.com/v6/latest/USD');
+      if (data && data.rates) {
+        const tasas = State.get('tasasAUSD');
+        // ER-API devuelve 1 USD = X moneda. 
+        // Para convertir de esa moneda a USD, es 1 / tasa.
         if (data.rates.EUR) tasas.eur = 1 / data.rates.EUR;
         if (data.rates.CNY) tasas.cny = 1 / data.rates.CNY;
         if (data.rates.GBP) tasas.gbp = 1 / data.rates.GBP;
         if (data.rates.BRL) tasas.brl = 1 / data.rates.BRL;
         if (data.rates.MXN) tasas.mxn = 1 / data.rates.MXN;
         State.set('tasasAUSD', tasas);
+
+        // Guardar las tasas globales para usar en calcularOtroPais
+        State.set('tasasGlobales', data.rates);
+
         Calculator.calcular();
       }
     } catch (err) {
-      console.warn('[API] frankfurter.app no disponible:', err.message);
+      console.warn('[API] open.er-api.com no disponible:', err.message);
     }
   }
 
