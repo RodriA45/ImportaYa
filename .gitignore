@@ -1,0 +1,22 @@
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Logs
+*.log
+
+# Dependencias (si en el futuro se agregan)
+node_modules/
+
+# Build (si en el futuro se agrega bundler)
+dist/
+build/

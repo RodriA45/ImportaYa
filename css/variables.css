@@ -1,0 +1,97 @@
+/**
+ * variables.css — Sistema ÚNICO de variables CSS.
+ * tokens.css fue fusionado aquí. No usar tokens.css.
+ *
+ * FIXES:
+ *  - Unifica --accent / --cyan / --color-accent en un solo nombre
+ *  - Agrega alias de compatibilidad para que componentes más viejos no rompan
+ */
+:root {
+  /* ── Fondo y superficies ── */
+  --bg:           #060a0f;
+  --surface:      #0d1420;
+  --surface2:     #111b2d;
+  --surface3:     #162138;
+  --border:       #1e2d45;
+  --border2:      #253650;
+
+  /* Alias "color-*" usados en layout.css y components.css */
+  --color-bg:        var(--bg);
+  --color-surface:   var(--surface);
+  --color-surface-2: var(--surface2);
+  --color-border:    var(--border);
+
+  /* ── Colores de acento ── */
+  --cyan:        #00e5ff;
+  --cyan-dim:    rgba(0,229,255,.12);
+  --cyan-glow:   rgba(0,229,255,.25);
+  --purple:      #a78bfa;
+  --purple-dim:  rgba(167,139,250,.12);
+  --red:         #ff3d71;
+  --red-dim:     rgba(255,61,113,.12);
+  --gold:        #fbbf24;
+  --gold-dim:    rgba(251,191,36,.10);
+  --green:       #10b981;
+  --green-dim:   rgba(16,185,129,.12);
+  --warn:        #f59e0b;
+
+  /* Alias "accent" para componentes generados dinámicamente */
+  --accent:        var(--cyan);
+  --accent2:       var(--red);
+  --accent3:       var(--purple);
+  --success:       var(--green);
+  --color-accent:   var(--cyan);
+  --color-accent-2: var(--red);
+  --color-accent-3: var(--purple);
+  --color-gold:     var(--gold);
+  --color-success:  var(--green);
+
+  /* ── Texto ── */
+  --text:       #dce8f7;
+  --text-dim:   #8aa4c8;
+  --muted:      #4d6585;
+  --color-text:   var(--text);
+  --color-muted:  var(--muted);
+
+  /* ── Tipografía ── */
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+
+  /* ── Espaciado ── */
+  --space-xs:   .25rem;
+  --space-sm:   .5rem;
+  --space-md:   1rem;
+  --space-lg:   1.5rem;
+  --space-xl:   2rem;
+  --space-2xl:  3rem;
+
+  /* ── Bordes ── */
+  --r-sm:   8px;
+  --r-md:   12px;
+  --r-lg:   16px;
+  --r-xl:   20px;
+  --r-pill: 999px;
+
+  /* Alias usados en components.css nuevo */
+  --radius-sm:  var(--r-sm);
+  --radius-md:  var(--r-md);
+  --radius-lg:  var(--r-lg);
+  --radius-xl:  var(--r-xl);
+  --radius-pill:var(--r-pill);
+
+  /* ── Sombras ── */
+  --shadow-card: 0 4px 32px rgba(0,0,0,.4);
+  --shadow-glow: 0 0 24px rgba(0,229,255,.1);
+
+  /* ── Transiciones ── */
+  --t-fast:   .15s ease;
+  --t-normal: .25s ease;
+  --t-spring: .4s cubic-bezier(.22,1,.36,1);
+  --transition:      var(--t-normal);
+  --transition-slow: var(--t-spring);
+
+  /* ── Z-index ── */
+  --z-orb:  0;
+  --z-base: 1;
+}

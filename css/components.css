@@ -1,0 +1,438 @@
+/* =============================================
+   components.css — Reusable UI components
+   ============================================= */
+
+/* ---- Card ---- */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-md);
+  transition: border-color var(--transition-base);
+}
+.card:hover {
+  border-color: rgba(0, 229, 255, 0.2);
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  letter-spacing: 2px;
+  color: var(--color-accent);
+  margin-bottom: var(--space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* ---- Field & Labels ---- */
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  display: block;
+  font-size: 0.6875rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin-bottom: var(--space-sm);
+}
+
+/* ---- Inputs & Selects ---- */
+input,
+select,
+textarea {
+  width: 100%;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+  outline: none;
+}
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.1);
+}
+input[readonly] { color: var(--color-muted); cursor: default; }
+select { cursor: pointer; }
+select option { background: var(--color-surface); }
+textarea { resize: none; }
+
+/* ---- Input Group (prefix icon) ---- */
+.input-group {
+  position: relative;
+}
+.input-prefix {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  pointer-events: none;
+}
+.input-group input {
+  padding-left: 2.5rem;
+}
+
+/* ---- Note ---- */
+.note {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  line-height: 1.6;
+  margin-top: var(--space-sm);
+}
+
+/* ---- Chip ---- */
+.chip {
+  display: inline-block;
+  font-size: 0.625rem;
+  font-family: var(--font-mono);
+  letter-spacing: 1px;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  margin-left: var(--space-sm);
+  vertical-align: middle;
+}
+.chip--blue {
+  background: rgba(0, 229, 255, 0.15);
+  color: var(--color-accent);
+}
+
+/* ---- Stores grid ---- */
+.stores-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 0.625rem;
+}
+
+.store-btn {
+  background: var(--color-surface-2);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--transition-base), color var(--transition-base), background var(--transition-base);
+  font-size: 0.6875rem;
+  color: var(--color-muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.store-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: rgba(0, 229, 255, 0.05);
+}
+.store-btn.active {
+  border-color: var(--color-accent);
+  background: rgba(0, 229, 255, 0.1);
+  color: var(--color-accent);
+  box-shadow: var(--shadow-accent);
+}
+.store-btn__emoji {
+  font-size: 1.375rem;
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* ---- Dólar strip ---- */
+.dolar-strip {
+  display: flex;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+  margin-bottom: var(--space-lg);
+}
+
+.dolar-pill {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.625rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  flex: 1;
+  min-width: 90px;
+  cursor: pointer;
+  transition: border-color var(--transition-base), background var(--transition-base);
+  text-align: center;
+}
+.dolar-pill:hover,
+.dolar-pill.active {
+  border-color: var(--color-accent);
+  background: rgba(0, 229, 255, 0.07);
+}
+.dolar-pill__name {
+  font-size: 0.625rem;
+  color: var(--color-muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 4px;
+}
+.dolar-pill__value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+/* ---- Currency tabs ---- */
+.tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: var(--space-lg);
+}
+
+.tab {
+  flex: 1;
+  min-width: 60px;
+  padding: 0.625rem;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color var(--transition-base), color var(--transition-base), background var(--transition-base);
+}
+.tab:hover { border-color: var(--color-accent-3); color: var(--color-text); }
+.tab.active {
+  background: rgba(0, 229, 255, 0.1);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ---- Card types ---- */
+.card-types {
+  display: flex;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+}
+
+.card-type-btn {
+  flex: 1;
+  min-width: 110px;
+  background: var(--color-surface-2);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.875rem 0.75rem;
+  cursor: pointer;
+  transition: border-color var(--transition-base), background var(--transition-base);
+  text-align: center;
+}
+.card-type-btn:hover { border-color: var(--color-accent-3); }
+.card-type-btn.active {
+  border-color: var(--color-accent-3);
+  background: rgba(167, 139, 250, 0.1);
+}
+.card-type-btn__name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.card-type-btn__desc {
+  font-size: 0.6875rem;
+  color: var(--color-muted);
+  margin-top: 3px;
+}
+
+/* ---- Banks grid ---- */
+.banks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.bank-btn {
+  background: var(--color-surface-2);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.625rem 0.75rem;
+  cursor: pointer;
+  transition: border-color var(--transition-base), color var(--transition-base), background var(--transition-base);
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.bank-btn:hover { border-color: var(--color-gold); color: var(--color-text); }
+.bank-btn.active {
+  border-color: var(--color-gold);
+  background: rgba(251, 191, 36, 0.08);
+  color: var(--color-gold);
+}
+.bank-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ---- Range input ---- */
+.range-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.range-row input[type="range"] {
+  flex: 1;
+  padding: 0;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
+  border: none;
+  box-shadow: none;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+.range-val {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: var(--color-accent);
+  min-width: 52px;
+  text-align: right;
+}
+
+/* ---- Link area ---- */
+.link-area {
+  position: relative;
+}
+.link-area textarea {
+  padding-right: 100px;
+  font-size: 0.8125rem;
+  font-family: var(--font-mono);
+}
+.parse-btn {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  background: var(--color-accent);
+  color: var(--color-bg);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 1rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  transition: opacity var(--transition-fast);
+}
+.parse-btn:hover { opacity: 0.85; }
+
+/* ---- Warning box ---- */
+.warning-box {
+  background: rgba(251, 191, 36, 0.07);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  font-size: 0.75rem;
+  color: rgba(251, 191, 36, 0.8);
+  margin-top: var(--space-md);
+  line-height: 1.6;
+}
+
+/* ── Nuevas clases ──────────────────────────────────────── */
+
+/* Badge de origen de tienda */
+.badge-origin {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--muted);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  margin-left: auto;
+}
+
+/* Hora de última actualización */
+.last-update {
+  font-size: 10px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  margin-left: 8px;
+  opacity: .7;
+}
+
+/* Loading placeholder en pills */
+.pill-loading {
+  opacity: .4;
+  animation: blink 1s ease infinite;
+}
+@keyframes blink {
+  0%,100% { opacity:.4 } 50% { opacity:1 }
+}
+
+/* Alertas */
+.alert-box {
+  border-radius: var(--radius-md);
+  padding: .875rem 1.125rem;
+  font-size: .825rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+.alert-warn {
+  background: rgba(245,158,11,.08);
+  border: 1px solid rgba(245,158,11,.25);
+  color: rgba(251,191,36,.9);
+}
+.alert-error {
+  background: rgba(255,61,113,.08);
+  border: 1px solid rgba(255,61,113,.25);
+  color: rgba(255,100,140,.9);
+}
+
+/* Footer */
+.site-footer {
+  text-align: center;
+  padding: 2.5rem 0 1rem;
+  font-size: .8rem;
+  color: var(--muted);
+}
+.site-footer a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: opacity var(--transition);
+}
+.site-footer a:hover { opacity: .7; }
+
+/* Chip */
+.chip {
+  display: inline-block;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  letter-spacing: 1px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.chip-purple {
+  background: rgba(167,139,250,.15);
+  color: var(--accent3);
+}
+.chip-blue {
+  background: rgba(0,229,255,.12);
+  color: var(--accent);
+}
