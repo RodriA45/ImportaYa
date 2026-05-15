@@ -162,7 +162,3 @@ Los porcentajes utilizados se deducen automáticamente en tiempo real comparando
 ## Licencia
 
 MIT — Libre para usar, modificar y distribuir. Ver [LICENSE](LICENSE).
-
----
-
-<p align="center">Hecho con ❤️ en Argentina 🇦🇷</p>
