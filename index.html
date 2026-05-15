@@ -25,39 +25,69 @@
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/result.css">
   <link rel="stylesheet" href="css/animations.css">
+  <link rel="manifest" href="manifest.json">
 </head>
 <body>
 
   <div class="orb orb--1" aria-hidden="true"></div>
   <div class="orb orb--2" aria-hidden="true"></div>
 
-  <div class="container">
-
-    <header class="site-header">
-      <h1 class="logo">ImportaYa</h1>
-      <p class="tagline">Calculadora de compras internacionales</p>
-      <div class="live-badge">
-        <span class="live-dot" aria-hidden="true"></span>
-        Cotizaciones en tiempo real
-        <span id="lastUpdate" class="last-update"></span>
+  <div class="app-layout">
+    
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1 class="logo">ImportaYa</h1>
+        <button id="themeToggle" class="theme-btn" aria-label="Cambiar tema" title="Cambiar tema">☀️</button>
       </div>
-    </header>
-
-    <!-- COTIZACIONES -->
-    <section class="card" aria-labelledby="dolar-title">
-      <h2 class="card-title" id="dolar-title"><span aria-hidden="true">💱</span> Cotizaciones del dólar (hoy)</h2>
-      <div class="dolar-strip" id="dolarStrip" role="radiogroup" aria-label="Tipo de cotización"></div>
-      <div class="field" id="customDolarRow" hidden>
-        <label for="customDolar">Cotización manual (ARS por USD)</label>
-        <div class="input-group">
-          <span class="input-prefix" aria-hidden="true">$</span>
-          <input type="number" id="customDolar" placeholder="ej: 1850" min="1" step="1">
+      <nav class="sidebar-nav">
+        <button class="nav-btn active" data-view="calculator">
+          <span aria-hidden="true">🛒</span> Calculadora
+        </button>
+        <button class="nav-btn" data-view="rates">
+          <span aria-hidden="true">💱</span> Cotizaciones
+        </button>
+        <button class="nav-btn" data-view="settings">
+          <span aria-hidden="true">⚙️</span> Ajustes & Bancos
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="live-badge">
+          <span class="live-dot" aria-hidden="true"></span>
+          En vivo <span id="lastUpdate" class="last-update"></span>
         </div>
       </div>
-      <p class="note" style="margin-top:.75rem">
-        * "Tarjeta" = tipo oficial + Impuesto PAIS 30% + Percepción AFIP 45% (a cuenta Bienes Personales / Ganancias).
-      </p>
-    </section>
+    </aside>
+
+    <main class="main-content">
+      
+      <!-- VISTA: COTIZACIONES -->
+      <div id="view-rates" class="view-section" hidden>
+        <header class="section-header">
+          <h2>Tasas de Cambio</h2>
+          <p>Valores actualizados en tiempo real</p>
+        </header>
+        <section class="card" aria-labelledby="dolar-title">
+          <h2 class="card-title" id="dolar-title"><span aria-hidden="true">💱</span> Cotizaciones del dólar (hoy)</h2>
+          <div class="dolar-strip" id="dolarStrip" role="radiogroup" aria-label="Tipo de cotización"></div>
+          <div class="field" id="customDolarRow" hidden>
+            <label for="customDolar">Cotización manual (ARS por USD)</label>
+            <div class="input-group">
+              <span class="input-prefix" aria-hidden="true">$</span>
+              <input type="number" id="customDolar" placeholder="ej: 1850" min="1" step="1">
+            </div>
+          </div>
+          <p class="note" style="margin-top:.75rem">
+            * "Tarjeta" = tipo oficial + recargos vigentes de AFIP.
+          </p>
+        </section>
+      </div>
+
+      <!-- VISTA: AJUSTES -->
+      <div id="view-settings" class="view-section" hidden>
+        <header class="section-header">
+          <h2>Configuración de la Calculadora</h2>
+        </header>
 
     <!-- PAÍS -->
     <section class="card" aria-labelledby="pais-title">
@@ -115,14 +145,26 @@
       </div>
     </section>
 
-    <!-- BANCO -->
-    <section class="card" id="arSection" aria-labelledby="banco-title">
-      <h2 class="card-title" id="banco-title"><span aria-hidden="true">🏦</span> Banco / Billetera Virtual</h2>
-      <div>
-        <label class="sr-only">Banco / Entidad</label>
-        <div class="banks-grid" id="bancosGrid" role="radiogroup" aria-label="Banco o entidad financiera"></div>
-      </div>
-    </section>
+        <!-- BANCO -->
+        <section class="card" id="arSection" aria-labelledby="banco-title">
+          <h2 class="card-title" id="banco-title"><span aria-hidden="true">🏦</span> Banco / Billetera Virtual</h2>
+          <div>
+            <label class="sr-only">Banco / Entidad</label>
+            <div class="banks-grid" id="bancosGrid" role="radiogroup" aria-label="Banco o entidad financiera"></div>
+          </div>
+        </section>
+      </div> <!-- /view-settings -->
+
+      <!-- VISTA: CALCULADORA (Principal) -->
+      <div id="view-calculator" class="view-section active">
+        <header class="section-header">
+          <h2>Simulador de Compras</h2>
+          <p>Calcula el costo final en tu moneda local</p>
+        </header>
+        
+        <div class="calculator-layout">
+          <!-- Columna Izquierda: Entradas -->
+          <div class="calc-inputs">
 
     <!-- ENVÍO -->
     <section class="card" aria-labelledby="envio-title">
@@ -141,6 +183,12 @@
 
     <!-- ALERTA -->
     <div id="alertBox" class="alert-box alert-warn" hidden aria-live="assertive" role="alert"></div>
+
+          </div> <!-- /calc-inputs -->
+
+          <!-- Columna Derecha: Resultados -->
+          <div class="calc-results">
+
 
     <!-- RESULTADO -->
     <section class="result-card" aria-labelledby="result-title">
@@ -179,15 +227,15 @@
         <div class="breakdown-row" id="br-row-impPais">
           <span class="breakdown-label">
             Impuesto PAIS
-            <span class="impuesto-tag tag-red">30%</span>
+            <span class="impuesto-tag tag-red" id="br-impPaisTag">0%</span>
           </span>
           <span class="breakdown-value neg" id="br-impPais">+ $0</span>
         </div>
 
         <div class="breakdown-row" id="br-row-percepcion">
           <span class="breakdown-label">
-            Percepción AFIP (RG 4815)
-            <span class="impuesto-tag tag-red">45%</span>
+            Percepción AFIP
+            <span class="impuesto-tag tag-red" id="br-percepcionTag">0%</span>
           </span>
           <span class="breakdown-value neg" id="br-percepcion">+ $0</span>
         </div>
@@ -220,17 +268,26 @@
       <div class="warning-box" id="warningBox">
         ⚠️ Estimación basada en la normativa vigente en Argentina (2025). Los valores pueden variar según banco, fecha y regulaciones de AFIP. Válido para compras personales vía Correo Argentino / Puerta a Puerta (hasta USD 200 de franquicia).
       </div>
+
+      <button id="shareBtn" class="share-btn">
+        <span aria-hidden="true">📤</span> <span id="shareBtnText">Compartir cálculo</span>
+      </button>
     </section>
 
-    <footer class="site-footer">
-      <p>
-        Hecho por <a href="https://www.linkedin.com/in/rodrigo-antunez-9523a6380" target="_blank" rel="noopener">Rodrigo Antunez</a> ·
-        <a href="https://github.com/tuusuario/importaya" target="_blank" rel="noopener">Ver en GitHub</a>
-        · Datos: <a href="https://dolarapi.com" target="_blank" rel="noopener">DolarAPI</a> &amp; <a href="https://frankfurter.app" target="_blank" rel="noopener">Frankfurter</a>
-      </p>
-    </footer>
+          </div> <!-- /calc-results -->
+        </div> <!-- /calculator-layout -->
+      </div> <!-- /view-calculator -->
 
-  </div>
+      <footer class="site-footer">
+        <p>
+          Hecho por <a href="https://www.linkedin.com/in/rodrigo-antunez-9523a6380" target="_blank" rel="noopener">Rodrigo Antunez</a> ·
+          <a href="https://github.com/tuusuario/importaya" target="_blank" rel="noopener">Ver en GitHub</a>
+          · Datos: <a href="https://dolarapi.com" target="_blank" rel="noopener">DolarAPI</a> &amp; <a href="https://frankfurter.app" target="_blank" rel="noopener">Frankfurter</a>
+        </p>
+      </footer>
+
+    </main> <!-- /main-content -->
+  </div> <!-- /app-layout -->
 
   <!-- SCRIPTS — orden importa -->
   <script src="js/config.js"></script>

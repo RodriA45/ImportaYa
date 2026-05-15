@@ -29,12 +29,17 @@ Para otros países latinoamericanos: conversión local + IVA + arancel básico.
 ## Funcionalidades
 
 - 💱 **Cotización en tiempo real** — Dólar Tarjeta, Blue, Oficial, MEP, CCL y Cripto desde [DolarAPI](https://dolarapi.com). Se refresca automáticamente cada 3 minutos.
+- 🤖 **Impuestos de AFIP automatizados** — Deduce los recargos actuales (Percepciones) basándose en la diferencia entre el Dólar Oficial y el Tarjeta.
+- 🎨 **Interfaz Dashboard (SPA)** — Diseño moderno, minimalista y accesible. Menú lateral en escritorio y **Bottom Tab Bar** (estilo app nativa) en celulares para una navegación cómoda con una sola mano.
 - 🛒 **8 tiendas incluidas** — AliExpress, Temu, Shein, Amazon, eBay, Etsy, Wish, Zara y "Otra".
 - 🔗 **Detección por link** — Pegá la URL del producto y detecta la tienda automáticamente.
 - 💰 **8 monedas de entrada** — USD, EUR, CNY (Yuan), GBP, BRL, MXN, USDT y BTC.
 - 🏦 **14 bancos y billeteras virtuales** — Galicia, Santander, BBVA, Macro, Nación, Brubank, Naranja X, Mercado Pago, Lemon, Ualá y más.
 - 🌍 **10 países** — Argentina, México, Colombia, Chile, Perú, Uruguay, Brasil, Paraguay, Bolivia y Ecuador.
 - 📦 **Cálculo de aduana** — Alerta automática si superás los USD 200 de franquicia.
+- 🌗 **Modo Claro / Oscuro** — Se adapta a las preferencias de tu sistema.
+- 📱 **Soporte PWA** — Instalable como aplicación móvil y funciona offline (con caché).
+- 📤 **Compartir Cálculo** — Exporta un resumen perfectamente formateado para WhatsApp.
 
 ---
 
@@ -49,20 +54,22 @@ Para otros países latinoamericanos: conversión local + IVA + arancel básico.
 ```
 importaya/
 ├── index.html              # HTML principal
+├── manifest.json           # Configuración PWA
+├── sw.js                   # Service Worker (offline)
 ├── css/
 │   ├── reset.css           # Reset de estilos
-│   ├── tokens.css          # Variables de diseño (colores, fuentes, espaciado)
+│   ├── tokens.css          # Variables de diseño (colores, temas dark/light)
 │   ├── layout.css          # Layout, grid, contenedores
 │   ├── components.css      # Componentes (cards, botones, inputs, pills)
 │   ├── result.css          # Panel de resultado y breakdown
 │   └── animations.css      # Animaciones y transiciones
 └── js/
-    ├── config.js           # Datos estáticos (países, tiendas, bancos, impuestos)
+    ├── config.js           # Datos estáticos (países, tiendas, bancos, impuestos base)
     ├── state.js            # Estado global reactivo
     ├── calculator.js       # Motor de cálculo de precios e impuestos
-    ├── ui.js               # Renderizado dinámico e interacciones
-    ├── api.js              # Fetch de cotizaciones en tiempo real
-    └── main.js             # Bootstrap de la aplicación
+    ├── ui.js               # Renderizado dinámico e interacciones (UI, Share, Theme)
+    ├── api.js              # Fetch de cotizaciones y deducción automática de impuestos
+    └── main.js             # Bootstrap de la aplicación y registro PWA
 ```
 
 ### Flujo de datos
@@ -135,10 +142,11 @@ git push origin feature/mi-mejora
 
 - [ ] Agregar más países y sus regímenes de importación
 - [ ] Historial de cotizaciones (gráfico)
-- [ ] Modo oscuro / claro
-- [ ] PWA (funcione offline)
+- [x] Rediseño UX/UI a Dashboard Moderno
+- [x] Modo oscuro / claro
+- [x] PWA (funcione offline)
+- [x] Botón para compartir cálculo
 - [ ] Exportar cálculo como PDF o imagen
-- [ ] Comparador de tiendas lado a lado
 - [ ] Chrome Extension para calcular directamente en la página de la tienda
 
 ---
@@ -147,9 +155,7 @@ git push origin feature/mi-mejora
 
 Esta herramienta es orientativa. Los valores de impuestos pueden cambiar según resoluciones de AFIP, BCRA u otros organismos. Siempre verificá con tu banco o contador antes de tomar decisiones financieras.
 
-Los porcentajes utilizados corresponden a la normativa vigente en Argentina a 2026:
-- Impuesto PAIS: 30% (Ley 27.541)
-- Percepción AFIP: 45% (RG 4815/2020 y modificatorias)
+Los porcentajes utilizados se deducen automáticamente en tiempo real comparando la cotización Oficial y Tarjeta a través de DolarAPI. Por lo tanto, no requieren actualizaciones manuales en el código ante cambios repentinos de la AFIP.
 
 ---
 

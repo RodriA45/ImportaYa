@@ -63,8 +63,9 @@ const Calculator = (() => {
       nota = 'incluidos en cotización tarjeta';
     } else if (tipoDolar === 'oficial') {
       const baseOficialARS = totalUSD * cotOficial;
-      impPais    = baseOficialARS * 0.30;
-      percepcion = baseOficialARS * 0.45;
+      const cfgAR = CONFIG.paises.AR;
+      impPais    = baseOficialARS * (cfgAR.impPais / 100);
+      percepcion = baseOficialARS * (cfgAR.percepcion / 100);
       nota       = `base oficial $${fmt(cotOficial)}/USD`;
     } else {
       nota = 'No aplican para esta cotización';
@@ -135,9 +136,15 @@ const Calculator = (() => {
     } = res;
 
     document.getElementById('br-row-iva').hidden = true;
-    document.getElementById('br-row-impPais').hidden = false;
-    document.getElementById('br-row-percepcion').hidden = false;
+    document.getElementById('br-row-impPais').hidden = paisCfg.impPais === 0;
+    document.getElementById('br-row-percepcion').hidden = paisCfg.percepcion === 0;
     document.getElementById('br-row-banco').hidden = false;
+
+    const impPaisTag = document.getElementById('br-impPaisTag');
+    if (impPaisTag) impPaisTag.textContent = `${paisCfg.impPais}%`;
+
+    const percepcionTag = document.getElementById('br-percepcionTag');
+    if (percepcionTag) percepcionTag.textContent = `${paisCfg.percepcion}%`;
 
     document.getElementById('aduanaInfo').innerHTML = '📬 Franquicia Puerta a Puerta (correo): <strong>USD 200 libres de impuesto</strong>. Superar ese monto genera un arancel del 50% sobre el excedente.';
     document.getElementById('warningBox').textContent = '⚠️ Estimación basada en la normativa vigente en Argentina (2025). Los valores pueden variar según banco, fecha y regulaciones de AFIP. Válido para compras personales vía Correo Argentino / Puerta a Puerta (hasta USD 200 de franquicia).';

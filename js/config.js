@@ -13,8 +13,8 @@ const CONFIG = {
       monedaNombre: 'Peso Argentino',
       simbolo: '$',
       iva: 21,
-      impPais: 30,       // Impuesto PAIS sobre compras en el exterior
-      percepcion: 45,    // Percepción AFIP (RG 4815)  
+      impPais: 0,        // Impuesto PAIS eliminado
+      percepcion: 0,     // Se calcula dinámicamente desde API
       franquicia: 200,   // Franquicia puerta a puerta en USD
       arancel: 0.50,     // Arancel sobre excedente franquicia
     },

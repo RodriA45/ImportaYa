@@ -54,3 +54,20 @@
   --z-sticky:  10;
   --z-overlay: 100;
 }
+
+/* =============================================
+   Light Theme Overrides
+   ============================================= */
+[data-theme="light"] {
+  --color-bg:          #f8fafc;
+  --color-surface:     #ffffff;
+  --color-surface-2:   #f1f5f9;
+  --color-border:      #e2e8f0;
+  --color-border-soft: rgba(226, 232, 240, 0.6);
+
+  --color-text:        #0f172a;
+  --color-muted:       #64748b;
+
+  --shadow-accent: 0 4px 12px rgba(0, 229, 255, 0.2);
+  --shadow-gold:   0 4px 12px rgba(251, 191, 36, 0.2);
+}

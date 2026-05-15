@@ -44,13 +44,164 @@ body::before {
   right: -100px;
 }
 
-/* Main container */
-.container {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 0 var(--space-lg) var(--space-2xl);
+/* Main App Layout (Dashboard) */
+.app-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
   position: relative;
   z-index: var(--z-base);
+}
+
+/* Sidebar Styling */
+.sidebar {
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  padding: var(--space-xl) var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xl);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  flex: 1;
+}
+
+.nav-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-muted);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-md);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--trans-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text);
+}
+
+.nav-btn.active {
+  background: rgba(0, 229, 255, 0.1);
+  color: var(--color-accent);
+  border-left: 3px solid var(--color-accent);
+}
+
+[data-theme="light"] .nav-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-footer {
+  margin-top: auto;
+}
+
+/* Main Content Area */
+.main-content {
+  padding: var(--space-2xl);
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Calculator specific layout (split columns) */
+.calculator-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: var(--space-2xl);
+  align-items: start;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 900px) {
+  .app-layout {
+    grid-template-columns: 1fr;
+    padding-bottom: 80px; /* Espacio para la barra inferior */
+  }
+  
+  .sidebar {
+    display: contents; /* Permite posicionar a sus hijos libremente */
+  }
+
+  .sidebar-header {
+    display: flex;
+    padding: var(--space-md) var(--space-lg);
+    background: var(--color-surface);
+    position: sticky;
+    top: 0;
+    z-index: 90;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 0;
+  }
+  
+  .sidebar-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: var(--color-surface);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    padding: var(--space-xs) var(--space-sm);
+    padding-bottom: calc(var(--space-xs) + env(safe-area-inset-bottom));
+    z-index: 100;
+  }
+  
+  .nav-btn {
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.75rem;
+    padding: var(--space-sm);
+    text-align: center;
+    align-items: center;
+    border-radius: var(--radius-md);
+    white-space: nowrap;
+  }
+
+  .nav-btn span {
+    font-size: 1.25rem;
+  }
+
+  .nav-btn.active {
+    background: transparent;
+    border-left: none;
+    color: var(--color-accent);
+  }
+  
+  .sidebar-footer {
+    display: none; /* Ocultamos el badge en móvil para ahorrar espacio */
+  }
+
+  .calculator-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .main-content {
+    padding: var(--space-md);
+  }
 }
 
 /* ---- Grids ---- */
@@ -66,29 +217,45 @@ body::before {
   .grid--3 { grid-template-columns: 1fr; }
 }
 
-/* ---- Site header ---- */
-.site-header {
-  padding: 3rem 0 2rem;
-  text-align: center;
+/* ---- Vistas (SPA) ---- */
+.view-section {
+  display: none;
+  animation: slideInFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+.view-section.active {
+  display: block;
+}
+
+.section-header {
+  margin-bottom: var(--space-2xl);
+}
+
+.section-header h2 {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 5vw, 48px);
+  color: var(--color-text);
+  line-height: 1.1;
+  letter-spacing: 1px;
+}
+
+.section-header p {
+  color: var(--color-muted);
+  font-size: 1.1rem;
+  margin-top: var(--space-sm);
+}
+
+/* ---- Componentes Heredados ---- */
 
 .logo {
   font-family: var(--font-display);
-  font-size: clamp(48px, 8vw, 80px);
+  font-size: clamp(32px, 8vw, 40px);
   letter-spacing: 4px;
   line-height: 1;
   background: linear-gradient(135deg, var(--color-accent), var(--color-accent-3), var(--color-accent-2));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-}
-
-.tagline {
-  color: var(--color-muted);
-  font-size: 0.8125rem;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  margin-top: var(--space-sm);
 }
 
 .live-badge {
@@ -140,3 +307,4 @@ body::before {
 }
 .divider::before { left: 0; }
 .divider::after  { right: 0; }
+

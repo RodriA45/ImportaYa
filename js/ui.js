@@ -344,9 +344,117 @@ const UI = (() => {
     if (el) el.hidden = true;
   }
 
+  // ── Theme (Dark/Light) ────────────────────────────────────────────────────────
+
+  function initTheme() {
+    const toggleBtn = document.getElementById('themeToggle');
+    if (!toggleBtn) return;
+
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+
+    if (initialTheme === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+      toggleBtn.textContent = '🌙';
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      toggleBtn.textContent = '☀️';
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      if (isLight) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'dark');
+        toggleBtn.textContent = '☀️';
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
+        toggleBtn.textContent = '🌙';
+      }
+    });
+  }
+
+  // ── Share ────────────────────────────────────────────────────────────────────
+
+  async function onShare() {
+    const btn = document.getElementById('shareBtn');
+    const btnText = document.getElementById('shareBtnText');
+    if (!btn || !btnText) return;
+
+    const pais = State.get('pais');
+    const totalPesos = document.getElementById('totalPesos')?.textContent || '$0';
+    const precioUSD = document.getElementById('br-precioUSD')?.textContent || 'USD 0';
+    const tiendaId = State.get('tienda');
+    const tienda = CONFIG.tiendas.find(t => t.id === tiendaId)?.nombre || 'Tienda';
+    
+    let textToShare = `🛒 Cálculo de ImportaYa\n`;
+    textToShare += `📍 Tienda: ${tienda}\n`;
+    textToShare += `💵 Precio + Envío: ${precioUSD}\n`;
+    textToShare += `💳 Total Estimado: ${totalPesos}\n`;
+    
+    if (pais === 'AR') {
+      const dolarTag = document.getElementById('br-dolarTag')?.textContent || 'Tarjeta';
+      const cotizacion = document.getElementById('br-cotizacion')?.textContent || '';
+      textToShare += `💱 Cotización usada: ${dolarTag} (${cotizacion.split(' ')[0]})\n`;
+    }
+    
+    textToShare += `\nCalcular otro producto: https://rodria45.github.io/ImportaYa/`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: 'Cálculo ImportaYa',
+          text: textToShare,
+        });
+      } else {
+        await navigator.clipboard.writeText(textToShare);
+        const originalText = btnText.textContent;
+        btnText.textContent = '¡Copiado!';
+        setTimeout(() => { btnText.textContent = originalText; }, 2000);
+      }
+    } catch (err) {
+      console.warn('Error al compartir', err);
+    }
+  }
+
+  // ── Navigation (SPA) ────────────────────────────────────────────────────────
+
+  function initNavigation() {
+    const navBtns = document.querySelectorAll('.nav-btn');
+    const views = document.querySelectorAll('.view-section');
+
+    navBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetViewId = btn.getAttribute('data-view');
+        
+        // Update Buttons
+        navBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Update Views
+        views.forEach(v => {
+          v.classList.remove('active');
+          v.hidden = true;
+          // Pequeño truco para forzar el reflow y reiniciar la animación
+          void v.offsetWidth; 
+        });
+
+        const targetView = document.getElementById(`view-${targetViewId}`);
+        if (targetView) {
+          targetView.classList.add('active');
+          targetView.hidden = false;
+        }
+      });
+    });
+  }
+
   // ── Init ──────────────────────────────────────────────────────────────────────
 
   function init() {
+    initTheme();
+    initNavigation();
     renderDolarStrip();
     renderStores();
     renderCurrencyTabs();
@@ -361,6 +469,9 @@ const UI = (() => {
     // FIX: tanto el input como el botón ANALIZAR usan la misma función con trim()
     document.getElementById('linkProducto')?.addEventListener('input', onLinkInput);
     document.getElementById('parseBtn')?.addEventListener('click', onLinkInput);
+    
+    // Botón Compartir
+    document.getElementById('shareBtn')?.addEventListener('click', onShare);
 
     Calculator.calcular();
   }

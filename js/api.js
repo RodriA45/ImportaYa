@@ -89,6 +89,15 @@ const API = (() => {
       });
 
       if (changed) {
+        // Lógica para deducir % AFIP automáticamente
+        const ofi = cotizaciones.oficial;
+        const tar = cotizaciones.tarjeta;
+        if (ofi && tar && ofi > 0) {
+          const recargoTotal = (tar / ofi) - 1;
+          CONFIG.paises.AR.percepcion = Math.round(recargoTotal * 100);
+          CONFIG.paises.AR.impPais = 0; // PAIS eliminado
+        }
+
         State.set('cotizaciones', cotizaciones);
         State.set('lastFetch', new Date());
         actualizarHora(false);
