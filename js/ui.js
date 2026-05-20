@@ -450,6 +450,69 @@ const UI = (() => {
     });
   }
 
+  // ── Export Image ─────────────────────────────────────────────────────────────
+
+  async function exportarComoImagen() {
+    const resultCard = document.querySelector('.result-card');
+    const btn = document.getElementById('downloadImgBtn');
+    const btnText = document.getElementById('downloadImgBtnText');
+    if (!resultCard || !btn || !btnText) return;
+
+    btn.disabled = true;
+    const originalText = btnText.textContent;
+    btnText.textContent = 'Generando...';
+
+    try {
+      // Opciones para html2canvas: alta calidad y compatibilidad con dark theme
+      const canvas = await html2canvas(resultCard, {
+        scale: 2, // Doble resolución para que se vea nítido en pantallas retina/móviles
+        useCORS: true,
+        backgroundColor: '#0d1420', // Fuerza el color de fondo surface
+        logging: false,
+      });
+
+      // Intentar compartir como archivo si el navegador lo soporta (menú nativo de compartir)
+      canvas.toBlob(async (blob) => {
+        if (!blob) throw new Error('No se pudo generar la imagen');
+        const file = new File([blob], `importaya-${Date.now()}.png`, { type: 'image/png' });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: 'Cálculo de ImportaYa',
+              text: 'Resumen de mi estimación de importación.',
+            });
+            return; // Compartido con éxito nativamente
+          } catch (shareErr) {
+            // Si el usuario canceló el compartir nativo, no hacemos nada más
+            if (shareErr.name === 'AbortError') return;
+            console.warn('Fallo al compartir archivo, cayendo en descarga:', shareErr);
+          }
+        }
+
+        // Si no soporta compartir archivos o falló, hacemos la descarga automática tradicional
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = `importaya-${Date.now()}.png`;
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+      }, 'image/png');
+
+    } catch (err) {
+      console.error('Error exportando imagen:', err);
+    } finally {
+      // Restaurar botón después de un breve delay
+      setTimeout(() => {
+        btn.disabled = false;
+        btnText.textContent = originalText;
+      }, 500);
+    }
+  }
+
   // ── Init ──────────────────────────────────────────────────────────────────────
 
   function init() {
@@ -472,6 +535,7 @@ const UI = (() => {
     
     // Botón Compartir
     document.getElementById('shareBtn')?.addEventListener('click', onShare);
+    document.getElementById('downloadImgBtn')?.addEventListener('click', exportarComoImagen);
 
     Calculator.calcular();
   }

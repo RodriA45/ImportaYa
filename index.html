@@ -269,8 +269,11 @@
         ⚠️ Estimación basada en la normativa vigente en Argentina (2025). Los valores pueden variar según banco, fecha y regulaciones de AFIP. Válido para compras personales vía Correo Argentino / Puerta a Puerta (hasta USD 200 de franquicia).
       </div>
 
-      <button id="shareBtn" class="share-btn">
+      <button id="shareBtn" class="share-btn" data-html2canvas-ignore>
         <span aria-hidden="true">📤</span> <span id="shareBtnText">Compartir cálculo</span>
+      </button>
+      <button id="downloadImgBtn" class="share-btn share-btn--secondary" data-html2canvas-ignore>
+        <span aria-hidden="true">🖼️</span> <span id="downloadImgBtnText">Descargar como Imagen</span>
       </button>
     </section>
 
@@ -290,6 +293,7 @@
   </div> <!-- /app-layout -->
 
   <!-- SCRIPTS — orden importa -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="js/config.js"></script>
   <script src="js/state.js"></script>
   <script src="js/calculator.js"></script>

@@ -90,10 +90,14 @@ body::before {
   border-radius: var(--radius-md);
   text-align: left;
   cursor: pointer;
-  transition: all var(--trans-fast);
+  transition: all var(--trans-fast), transform var(--t-fast);
   display: flex;
   align-items: center;
   gap: var(--space-md);
+}
+
+.nav-btn:active {
+  transform: scale(0.97);
 }
 
 .nav-btn:hover {
@@ -132,7 +136,7 @@ body::before {
 }
 
 /* Mobile Responsiveness */
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .app-layout {
     grid-template-columns: 1fr;
     padding-bottom: 80px; /* Espacio para la barra inferior */

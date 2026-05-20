@@ -113,6 +113,13 @@ python3 -m http.server 8080
 3. En *Source*, seleccioná `main` branch / `/ (root)`.
 4. ¡Listo! En unos minutos vas a tener tu URL `https://tuusuario.github.io/importaya`.
 
+### Personalización de enlaces de compartir
+
+Si querés cambiar el link que se comparte cuando tus usuarios usan el botón **Compartir cálculo**, debés modificarlo en el código:
+
+1. **Link de Compartir Texto:** Abrí el archivo [js/ui.js](file:///c:/Users/ridri/Downloads/Programacion/Proyectos%20Programacion%20Personales/ImportYa/importaya_fixed/js/ui.js) y en la línea **403** (dentro de la función `onShare`), reemplazá `https://rodria45.github.io/ImportaYa/` por tu propia URL de GitHub Pages o dominio propio.
+2. **Enlaces del Footer:** Si querés actualizar los créditos de autor o el enlace al repositorio, edita el archivo [index.html](file:///c:/Users/ridri/Downloads/Programacion/Proyectos%20Programacion%20Personales/ImportYa/importaya_fixed/index.html) en la sección `<footer>` (alrededor de la línea **283**).
+
 ---
 
 ## APIs utilizadas
