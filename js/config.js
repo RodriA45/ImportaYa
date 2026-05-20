@@ -25,12 +25,14 @@ const CONFIG = {
     UY: { nombre:'Uruguay',   moneda:'UYU', monedaNombre:'Peso Uruguayo',    simbolo:'$',  iva:22, impPais:0, percepcion:0, franquicia:200, arancel:0.20 },
     BR: { nombre:'Brasil',    moneda:'BRL', monedaNombre:'Real Brasileño',   simbolo:'R$', iva:12, impPais:0, percepcion:0, franquicia:50,  arancel:0.60 },
     PY: { nombre:'Paraguay',  moneda:'PYG', monedaNombre:'Guaraní Paraguayo',simbolo:'₲',  iva:10, impPais:0, percepcion:0, franquicia:200, arancel:0.10 },
+    BO: { nombre:'Bolivia',   moneda:'BOB', monedaNombre:'Boliviano',        simbolo:'Bs', iva:13, impPais:0, percepcion:0, franquicia:100, arancel:0.10 },
+    EC: { nombre:'Ecuador',   moneda:'USD', monedaNombre:'Dólar Americano',  simbolo:'$',  iva:15, impPais:0, percepcion:0, franquicia:400, arancel:0.10 },
   },
 
   // Cotización aproximada: 1 USD = X moneda local (fallback si no hay API)
   fallbackLocal: {
     AR: 1850, MX: 17.5, CO: 4000, CL: 960,
-    PE: 3.7,  UY: 38,   BR: 5.1,  PY: 7300,
+    PE: 3.7,  UY: 38,   BR: 5.1,  PY: 7300, BO: 6.91, EC: 1.0,
   },
 
   // ── Tiendas ──────────────────────────────────────────────

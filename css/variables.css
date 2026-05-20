@@ -95,3 +95,58 @@
   --z-orb:  0;
   --z-base: 1;
 }
+
+/* ════════════════════════════════
+   LIGHT THEME OVERRIDES
+   ════════════════════════════════ */
+[data-theme="light"] {
+  /* ── Fondo y superficies ── */
+  --bg:           #f8fafc;
+  --surface:      #ffffff;
+  --surface2:     #f1f5f9;
+  --surface3:     #e2e8f0;
+  --border:       #cbd5e1;
+  --border2:      #94a3b8;
+
+  /* Alias "color-*" usados en layout.css y components.css */
+  --color-bg:        var(--bg);
+  --color-surface:   var(--surface);
+  --color-surface-2: var(--surface2);
+  --color-border:    var(--border);
+
+  /* ── Texto ── */
+  --text:         #0f172a;
+  --text-dim:     #334155;
+  --muted:        #64748b;
+  --color-text:   var(--text);
+  --color-muted:  var(--muted);
+
+  /* ── Colores de acento optimizados para contraste en Light Theme ── */
+  --cyan:         #0284c7;
+  --cyan-dim:     rgba(2, 132, 199, 0.08);
+  --cyan-glow:    rgba(2, 132, 199, 0.15);
+  --purple:       #7c3aed;
+  --purple-dim:   rgba(124, 58, 237, 0.08);
+  --red:          #e11d48;
+  --red-dim:      rgba(225, 29, 72, 0.08);
+  --gold:         #d97706;
+  --gold-dim:     rgba(217, 119, 6, 0.06);
+  --green:        #059669;
+  --green-dim:    rgba(5, 150, 105, 0.08);
+  --warn:         #d97706;
+
+  /* Alias "accent" para componentes generados dinámicamente */
+  --accent:        var(--cyan);
+  --accent2:       var(--red);
+  --accent3:       var(--purple);
+  --success:       var(--green);
+  --color-accent:   var(--cyan);
+  --color-accent-2: var(--red);
+  --color-accent-3: var(--purple);
+  --color-gold:     var(--gold);
+  --color-success:  var(--green);
+
+  /* ── Sombras ── */
+  --shadow-card:  0 10px 30px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.02);
+  --shadow-glow:  0 0 20px rgba(2, 132, 199, 0.05);
+}

@@ -219,9 +219,10 @@ const Calculator = (() => {
     const paisCfg = CONFIG.paises[pais];
     if (!paisCfg) return;
 
-    const precioUSD = getPrecioUSD();
-    const envioUSD  = parseFloat(document.getElementById('envio')?.value)   || 0;
-    const cantidad  = parseInt(document.getElementById('cantidad')?.value)   || 1;
+    // Sanitización contra números negativos ingresados manualmente
+    const precioUSD = Math.max(0, getPrecioUSD());
+    const envioUSD  = Math.max(0, parseFloat(document.getElementById('envio')?.value) || 0);
+    const cantidad  = Math.max(1, parseInt(document.getElementById('cantidad')?.value) || 1);
 
     if (pais === 'AR') {
       renderBreakdownAR(calcularAR(precioUSD, envioUSD, cantidad), paisCfg);

@@ -29,36 +29,69 @@ const UI = (() => {
     const strip = document.getElementById('dolarStrip');
     if (!strip) return;
 
-    const cotizaciones = State.get('cotizaciones');
-    const activo = State.get('dolarSeleccionado');
-    const orden  = ['tarjeta', 'blue', 'oficial', 'mep', 'ccl', 'cripto', 'custom'];
+    const pais = State.get('pais');
+    const titleEl = document.getElementById('dolar-title');
+    const customRow = document.getElementById('customDolarRow');
+    const noteEl = document.querySelector('#view-rates .note');
 
-    strip.innerHTML = orden.map(key => {
-      const info  = DOLAR_LABELS[key];
-      const valor = cotizaciones[key];
-      const valorStr = key === 'custom'
-        ? '✏️'
-        : valor
-          ? `$${Math.round(valor).toLocaleString('es-AR')}`
-          : '<span class="pill-loading">…</span>';
+    if (pais === 'AR') {
+      if (titleEl) titleEl.innerHTML = '<span aria-hidden="true">💱</span> Cotizaciones del dólar (hoy)';
+      if (noteEl) noteEl.textContent = '* "Tarjeta" = tipo oficial + recargos vigentes de AFIP.';
+      
+      const cotizaciones = State.get('cotizaciones');
+      const activo = State.get('dolarSeleccionado');
+      const orden  = ['tarjeta', 'blue', 'oficial', 'mep', 'ccl', 'cripto', 'custom'];
 
-      return `
-        <div
-          class="dolar-pill${activo === key ? ' active' : ''}"
-          role="radio"
-          aria-checked="${activo === key}"
-          tabindex="0"
-          data-key="${key}"
-          onclick="UI.selectDolar('${key}', this)"
-          onkeydown="if(event.key==='Enter'||event.key===' ') UI.selectDolar('${key}', this)"
-        >
-          <span class="dolar-name">${info.emoji} ${info.label}</span>
-          <span class="dolar-val" id="val-${key}">${valorStr}</span>
-        </div>`;
-    }).join('');
+      strip.innerHTML = orden.map(key => {
+        const info  = DOLAR_LABELS[key];
+        const valor = cotizaciones[key];
+        const valorStr = key === 'custom'
+          ? '✏️'
+          : valor
+            ? `$${Math.round(valor).toLocaleString('es-AR')}`
+            : '<span class="pill-loading">…</span>';
 
-    // FIX: también actualizar el tag del breakdown cuando se re-renderizan los pills
-    _actualizarDolarTag(activo);
+        return `
+          <div
+            class="dolar-pill${activo === key ? ' active' : ''}"
+            role="radio"
+            aria-checked="${activo === key}"
+            tabindex="0"
+            data-key="${key}"
+            onclick="UI.selectDolar('${key}', this)"
+            onkeydown="if(event.key==='Enter'||event.key===' ') UI.selectDolar('${key}', this)"
+          >
+            <span class="dolar-pill__name">${info.emoji} ${info.label}</span>
+            <span class="dolar-pill__value" id="val-${key}">${valorStr}</span>
+          </div>`;
+      }).join('');
+
+      if (customRow) customRow.hidden = activo !== 'custom';
+      _actualizarDolarTag(activo);
+    } else {
+      const cfg = CONFIG.paises[pais];
+      if (!cfg) return;
+
+      if (titleEl) titleEl.innerHTML = `<span aria-hidden="true">💱</span> Cotización del dólar en ${cfg.nombre}`;
+      if (customRow) customRow.hidden = true;
+      if (noteEl) noteEl.textContent = '* Cotización de referencia obtenida de ExchangeRate-API.';
+
+      const tasasGlobales = State.get('tasasGlobales') || {};
+      const cotLocal = tasasGlobales[cfg.moneda] ?? (CONFIG.fallbackLocal[pais] ?? 1);
+
+      // Formatear tasa
+      const cotStr = cotLocal.toLocaleString('es-AR', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 4,
+      });
+
+      strip.innerHTML = `
+        <div class="dolar-pill active" style="max-width: 320px; cursor: default; margin: 0 auto;" role="img" aria-label="1 USD = ${cotStr} ${cfg.moneda}">
+          <span class="dolar-pill__name">1 USD Oficial (${cfg.moneda})</span>
+          <span class="dolar-pill__value">${cfg.simbolo}${cotStr}</span>
+        </div>
+      `;
+    }
   }
 
   function selectDolar(key, el) {
@@ -104,7 +137,7 @@ const UI = (() => {
         onkeydown="if(event.key==='Enter'||event.key===' ') UI.selectStore('${t.id}', this)"
         title="${t.nombre} · Origen: ${t.origen}"
       >
-        <span class="store-emoji" aria-hidden="true">${t.emoji}</span>
+        <span class="store-btn__emoji" aria-hidden="true">${t.emoji}</span>
         ${t.nombre}
       </div>
     `).join('');
@@ -267,6 +300,9 @@ const UI = (() => {
 
     const arSection = document.getElementById('arSection');
     if (arSection) arSection.hidden = pais !== 'AR';
+
+    // Rerenderizar cotizaciones para el nuevo país
+    renderDolarStrip();
 
     Calculator.calcular();
   }
@@ -458,16 +494,26 @@ const UI = (() => {
     const btnText = document.getElementById('downloadImgBtnText');
     if (!resultCard || !btn || !btnText) return;
 
-    btn.disabled = true;
     const originalText = btnText.textContent;
+
+    // Verificar si html2canvas está cargado (por si la PWA corre offline)
+    if (typeof html2canvas === 'undefined') {
+      showAlert('La exportación de imagen requiere conexión a internet para cargar el motor de captura.', 'warn');
+      return;
+    }
+
+    btn.disabled = true;
     btnText.textContent = 'Generando...';
 
     try {
-      // Opciones para html2canvas: alta calidad y compatibilidad con dark theme
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      const bgColor = isLight ? '#ffffff' : '#0d1420';
+
+      // Opciones para html2canvas: alta calidad y compatibilidad con el tema activo
       const canvas = await html2canvas(resultCard, {
         scale: 2, // Doble resolución para que se vea nítido en pantallas retina/móviles
         useCORS: true,
-        backgroundColor: '#0d1420', // Fuerza el color de fondo surface
+        backgroundColor: bgColor, // Evita texto invisible en modo claro/oscuro
         logging: false,
       });
 

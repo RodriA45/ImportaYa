@@ -148,3 +148,19 @@
   font-size: .9rem;
   color: var(--text);
 }
+
+/* ── Light Theme Specific Result Card Overrides ── */
+[data-theme="light"] .result-card {
+  background: linear-gradient(145deg, rgba(2, 132, 199, 0.04) 0%, rgba(124, 58, 237, 0.02) 100%);
+  border-color: rgba(2, 132, 199, 0.18);
+  box-shadow: 0 8px 48px rgba(2, 132, 199, 0.02), var(--shadow-card);
+}
+[data-theme="light"] .result-card::before {
+  background: radial-gradient(ellipse at top left, rgba(2, 132, 199, 0.03), transparent 60%);
+}
+[data-theme="light"] .breakdown-row.total-row {
+  border-top-color: rgba(2, 132, 199, 0.15);
+}
+[data-theme="light"] .breakdown-row--total {
+  border-top-color: rgba(2, 132, 199, 0.2);
+}

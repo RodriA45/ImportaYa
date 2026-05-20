@@ -498,3 +498,30 @@ textarea { resize: none; }
   background: rgba(167, 139, 250, 0.1);
 }
 
+/* ── Light Theme Specific Component Overrides ── */
+[data-theme="light"] .btn-primary {
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
+}
+[data-theme="light"] .btn-primary:hover {
+  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.25);
+  filter: brightness(0.95);
+}
+[data-theme="light"] .store-btn:hover,
+[data-theme="light"] .store-btn.active,
+[data-theme="light"] .bank-btn:hover,
+[data-theme="light"] .bank-btn.active,
+[data-theme="light"] .dolar-pill:hover,
+[data-theme="light"] .dolar-pill.active {
+  background: rgba(2, 132, 199, 0.06);
+}
+[data-theme="light"] .card-type-btn.active {
+  background: rgba(124, 58, 237, 0.06);
+}
+[data-theme="light"] .share-btn:hover {
+  background: rgba(2, 132, 199, 0.08);
+}
+[data-theme="light"] .share-btn--secondary:hover {
+  background: rgba(124, 58, 237, 0.08);
+}
+

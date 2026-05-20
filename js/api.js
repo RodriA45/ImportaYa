@@ -133,6 +133,7 @@ const API = (() => {
         // Guardar las tasas globales para usar en calcularOtroPais
         State.set('tasasGlobales', data.rates);
 
+        UI.renderDolarStrip();
         Calculator.calcular();
       }
     } catch (err) {
