@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Calculá exactamente cuánto pagarás en pesos al comprar en AliExpress, Temu, Shein, Amazon y más. Impuesto PAIS, AFIP y recargos bancarios incluidos.">
+  <meta name="description" content="Calcula exactamente cuanto pagaras en pesos al comprar en AliExpress, Temu, Shein, Amazon y mas. Impuesto PAIS, AFIP y recargos bancarios incluidos.">
   <meta property="og:title" content="ImportaYa — Calculadora de Compras Internacionales">
   <meta property="og:description" content="Precio final en pesos con todos los impuestos incluidos.">
   <meta property="og:type" content="website">
+  <meta property="og:url" content="https://rodria45.github.io/ImportaYa/">
   <title>ImportaYa — Calculadora de Compras Internacionales</title>
 
   <!-- Favicon -->
@@ -33,22 +34,22 @@
   <div class="orb orb--2" aria-hidden="true"></div>
 
   <div class="app-layout">
-    
+
     <!-- SIDEBAR NAVIGATION -->
     <aside class="sidebar">
       <div class="sidebar-header">
         <h1 class="logo">ImportaYa</h1>
-        <button id="themeToggle" class="theme-btn" aria-label="Cambiar tema" title="Cambiar tema">☀️</button>
+        <button id="themeToggle" class="theme-btn" aria-label="Cambiar tema" title="Cambiar tema">&#9728;&#65039;</button>
       </div>
       <nav class="sidebar-nav">
         <button class="nav-btn active" data-view="calculator">
-          <span aria-hidden="true">🛒</span> Calculadora
+          <span aria-hidden="true">&#128722;</span> Calculadora
         </button>
         <button class="nav-btn" data-view="rates">
-          <span aria-hidden="true">💱</span> Cotizaciones
+          <span aria-hidden="true">&#128178;</span> Cotizaciones
         </button>
         <button class="nav-btn" data-view="settings">
-          <span aria-hidden="true">⚙️</span> Ajustes & Bancos
+          <span aria-hidden="true">&#9881;&#65039;</span> Ajustes &amp; Bancos
         </button>
       </nav>
       <div class="sidebar-footer">
@@ -60,7 +61,7 @@
     </aside>
 
     <main class="main-content">
-      
+
       <!-- VISTA: COTIZACIONES -->
       <div id="view-rates" class="view-section" hidden>
         <header class="section-header">
@@ -68,10 +69,10 @@
           <p>Valores actualizados en tiempo real</p>
         </header>
         <section class="card" aria-labelledby="dolar-title">
-          <h2 class="card-title" id="dolar-title"><span aria-hidden="true">💱</span> Cotizaciones del dólar (hoy)</h2>
-          <div class="dolar-strip" id="dolarStrip" role="radiogroup" aria-label="Tipo de cotización"></div>
+          <h2 class="card-title" id="dolar-title"><span aria-hidden="true">&#128178;</span> Cotizaciones del dolar (hoy)</h2>
+          <div class="dolar-strip" id="dolarStrip" role="radiogroup" aria-label="Tipo de cotizacion"></div>
           <div class="field" id="customDolarRow" hidden>
-            <label for="customDolar">Cotización manual (ARS por USD)</label>
+            <label for="customDolar">Cotizacion manual (ARS por USD)</label>
             <div class="input-group">
               <span class="input-prefix" aria-hidden="true">$</span>
               <input type="number" id="customDolar" placeholder="ej: 1850" min="1" step="1">
@@ -86,74 +87,44 @@
       <!-- VISTA: AJUSTES -->
       <div id="view-settings" class="view-section" hidden>
         <header class="section-header">
-          <h2>Configuración de la Calculadora</h2>
+          <h2>Configuracion de la Calculadora</h2>
         </header>
 
-    <!-- PAÍS -->
-    <section class="card" aria-labelledby="pais-title">
-      <h2 class="card-title" id="pais-title"><span aria-hidden="true">🌍</span> Tu país y moneda</h2>
-      <div class="grid grid--2">
-        <div class="field">
-          <label for="pais">País</label>
-          <select id="pais">
-            <option value="AR">🇦🇷 Argentina</option>
-            <option value="MX">🇲🇽 México</option>
-            <option value="CO">🇨🇴 Colombia</option>
-            <option value="CL">🇨🇱 Chile</option>
-            <option value="PE">🇵🇪 Perú</option>
-            <option value="UY">🇺🇾 Uruguay</option>
-            <option value="BR">🇧🇷 Brasil</option>
-            <option value="PY">🇵🇾 Paraguay</option>
-            <option value="BO">🇧🇴 Bolivia</option>
-            <option value="EC">🇪🇨 Ecuador</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="monedaLocal">Moneda local</label>
-          <input type="text" id="monedaLocal" value="ARS — Peso Argentino" readonly>
-        </div>
-      </div>
-    </section>
+        <!-- PAIS -->
+        <section class="card" aria-labelledby="pais-title">
+          <h2 class="card-title" id="pais-title"><span aria-hidden="true">&#127757;</span> Tu pais y moneda</h2>
+          <div class="grid grid--2">
+            <div class="field">
+              <label for="pais">Pais</label>
+              <select id="pais">
+                <option value="AR">Argentina</option>
+                <option value="MX">Mexico</option>
+                <option value="CO">Colombia</option>
+                <option value="CL">Chile</option>
+                <option value="PE">Peru</option>
+                <option value="UY">Uruguay</option>
+                <option value="BR">Brasil</option>
+                <option value="PY">Paraguay</option>
+                <option value="BO">Bolivia</option>
+                <option value="EC">Ecuador</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="monedaLocal">Moneda local</label>
+              <input type="text" id="monedaLocal" value="ARS — Peso Argentino" readonly>
+            </div>
+          </div>
+        </section>
 
-    <!-- TIENDA -->
-    <section class="card" aria-labelledby="tienda-title">
-      <h2 class="card-title" id="tienda-title">
-        <span aria-hidden="true">🛒</span> Tienda de origen
-        <span class="badge-origin" id="tiendaOrigen">Origen: China</span>
-      </h2>
-      <div class="stores-grid" id="storesGrid" role="radiogroup" aria-label="Seleccionar tienda"></div>
-      <div class="divider" aria-hidden="true">o pegá el link del producto</div>
-      <div class="link-area">
-        <label for="linkProducto" class="sr-only">Link del producto</label>
-        <textarea id="linkProducto" placeholder="https://www.aliexpress.com/item/…  |  https://www.amazon.com/dp/…" rows="2"></textarea>
-        <button class="parse-btn" id="parseBtn" type="button">ANALIZAR</button>
-      </div>
-      <p class="note" id="linkInfo" aria-live="polite" style="margin-top:.5rem"></p>
-    </section>
-
-    <!-- PRECIO -->
-    <section class="card" aria-labelledby="precio-title">
-      <h2 class="card-title" id="precio-title"><span aria-hidden="true">💰</span> Precio del producto</h2>
-      <div class="tabs" id="currencyTabs" role="tablist" aria-label="Moneda de entrada"></div>
-      <div id="currencyPanels"></div>
-      <div class="field" style="margin-top:1.25rem">
-        <label for="cantidad">Cantidad de unidades</label>
-        <div class="range-row">
-          <input type="range" id="cantidad" min="1" max="50" value="1">
-          <span class="range-val" id="cantVal" aria-live="polite">1 ud.</span>
-        </div>
-      </div>
-    </section>
-
-        <!-- BANCO -->
+        <!-- BANCO (solo Argentina) -->
         <section class="card" id="arSection" aria-labelledby="banco-title">
-          <h2 class="card-title" id="banco-title"><span aria-hidden="true">🏦</span> Banco / Billetera Virtual</h2>
+          <h2 class="card-title" id="banco-title"><span aria-hidden="true">&#127974;</span> Banco / Billetera Virtual</h2>
           <div>
             <label class="sr-only">Banco / Entidad</label>
             <div class="banks-grid" id="bancosGrid" role="radiogroup" aria-label="Banco o entidad financiera"></div>
           </div>
         </section>
-      </div> <!-- /view-settings -->
+      </div>
 
       <!-- VISTA: CALCULADORA (Principal) -->
       <div id="view-calculator" class="view-section active">
@@ -161,121 +132,148 @@
           <h2>Simulador de Compras</h2>
           <p>Calcula el costo final en tu moneda local</p>
         </header>
-        
+
         <div class="calculator-layout">
           <!-- Columna Izquierda: Entradas -->
           <div class="calc-inputs">
 
-    <!-- ENVÍO -->
-    <section class="card" aria-labelledby="envio-title">
-      <h2 class="card-title" id="envio-title"><span aria-hidden="true">✈️</span> Envío y aduana</h2>
-      <div class="field">
-        <label for="envio">Costo de envío (USD)</label>
-        <div class="input-group">
-          <span class="input-prefix" aria-hidden="true">$</span>
-          <input type="number" id="envio" value="0" min="0" step="0.5" onfocus="this.select()">
-        </div>
-      </div>
-      <p class="note" id="aduanaInfo" style="margin-top:.75rem">
-        📬 Franquicia Puerta a Puerta (correo): <strong>USD 200 libres de impuesto</strong>. Superar ese monto genera un arancel del 50% sobre el excedente.
-      </p>
-    </section>
+            <!-- TIENDA -->
+            <section class="card" aria-labelledby="tienda-title">
+              <h2 class="card-title" id="tienda-title">
+                <span aria-hidden="true">&#128722;</span> Tienda de origen
+                <span class="badge-origin" id="tiendaOrigen">Origen: China</span>
+              </h2>
+              <div class="stores-grid" id="storesGrid" role="radiogroup" aria-label="Seleccionar tienda"></div>
+              <div class="divider" aria-hidden="true">o pega el link del producto</div>
+              <div class="link-area">
+                <label for="linkProducto" class="sr-only">Link del producto</label>
+                <textarea id="linkProducto" placeholder="https://www.aliexpress.com/item/...  |  https://www.amazon.com/dp/..." rows="2"></textarea>
+                <button class="parse-btn" id="parseBtn" type="button">ANALIZAR</button>
+              </div>
+              <p class="note" id="linkInfo" aria-live="polite" style="margin-top:.5rem"></p>
+            </section>
 
-    <!-- ALERTA -->
-    <div id="alertBox" class="alert-box alert-warn" hidden aria-live="assertive" role="alert"></div>
+            <!-- PRECIO -->
+            <section class="card" aria-labelledby="precio-title">
+              <h2 class="card-title" id="precio-title"><span aria-hidden="true">&#128176;</span> Precio del producto</h2>
+              <div class="tabs" id="currencyTabs" role="tablist" aria-label="Moneda de entrada"></div>
+              <div id="currencyPanels"></div>
+              <div class="field" style="margin-top:1.25rem">
+                <label for="cantidad">Cantidad de unidades</label>
+                <div class="range-row">
+                  <input type="range" id="cantidad" min="1" max="50" value="1">
+                  <span class="range-val" id="cantVal" aria-live="polite">1 ud.</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- ENVIO -->
+            <section class="card" aria-labelledby="envio-title">
+              <h2 class="card-title" id="envio-title"><span aria-hidden="true">&#9992;&#65039;</span> Envio y aduana</h2>
+              <div class="field">
+                <label for="envio">Costo de envio (USD)</label>
+                <div class="input-group">
+                  <span class="input-prefix" aria-hidden="true">$</span>
+                  <input type="number" id="envio" value="0" min="0" step="0.5" onfocus="this.select()">
+                </div>
+              </div>
+              <p class="note" id="aduanaInfo" style="margin-top:.75rem">
+                Franquicia Puerta a Puerta (correo): <strong>USD 200 libres de impuesto</strong>. Superar ese monto genera un arancel del 50% sobre el excedente.
+              </p>
+            </section>
+
+            <!-- ALERTA -->
+            <div id="alertBox" class="alert-box alert-warn" hidden aria-live="assertive" role="alert"></div>
 
           </div> <!-- /calc-inputs -->
 
           <!-- Columna Derecha: Resultados -->
           <div class="calc-results">
 
+            <!-- RESULTADO -->
+            <section class="result-card" aria-labelledby="result-title">
+              <p class="total-label" id="result-title">Total estimado a pagar</p>
+              <div class="total-amount" id="totalPesos" aria-live="polite">$0</div>
+              <p class="total-currency" id="totalCurrency">ARS — Peso Argentino</p>
 
-    <!-- RESULTADO -->
-    <section class="result-card" aria-labelledby="result-title">
-      <p class="total-label" id="result-title">Total estimado a pagar</p>
-      <div class="total-amount" id="totalPesos" aria-live="polite">$0</div>
-      <p class="total-currency" id="totalCurrency">ARS — Peso Argentino</p>
+              <div class="breakdown" aria-label="Desglose de impuestos">
 
-      <div class="breakdown" aria-label="Desglose de impuestos">
+                <div class="breakdown-row">
+                  <span class="breakdown-label">Precio + envio (USD)</span>
+                  <span class="breakdown-value" id="br-precioUSD">USD 0.00</span>
+                </div>
 
-        <div class="breakdown-row">
-          <span class="breakdown-label">Precio + envío (USD)</span>
-          <span class="breakdown-value" id="br-precioUSD">USD 0.00</span>
-        </div>
+                <div class="breakdown-row">
+                  <span class="breakdown-label">
+                    Cotizacion utilizada
+                    <span class="impuesto-tag tag-blue" id="br-dolarTag">Tarjeta</span>
+                  </span>
+                  <span class="breakdown-value neutral" id="br-cotizacion">— / USD</span>
+                </div>
 
-        <div class="breakdown-row">
-          <span class="breakdown-label">
-            Cotización utilizada
-            <span class="impuesto-tag tag-blue" id="br-dolarTag">Tarjeta</span>
-          </span>
-          <span class="breakdown-value neutral" id="br-cotizacion">— / USD</span>
-        </div>
+                <div class="breakdown-row">
+                  <span class="breakdown-label">Base en moneda local</span>
+                  <span class="breakdown-value neutral" id="br-baseARS">$0</span>
+                </div>
 
-        <div class="breakdown-row">
-          <span class="breakdown-label">Base en moneda local</span>
-          <span class="breakdown-value neutral" id="br-baseARS">$0</span>
-        </div>
+                <div class="breakdown-row" id="br-row-iva" hidden>
+                  <span class="breakdown-label">
+                    IVA local
+                    <span class="impuesto-tag tag-red" id="br-ivaTag"></span>
+                  </span>
+                  <span class="breakdown-value neg" id="br-iva">+ $0</span>
+                </div>
 
-        <div class="breakdown-row" id="br-row-iva" hidden>
-          <span class="breakdown-label">
-            IVA local
-            <span class="impuesto-tag tag-red" id="br-ivaTag"></span>
-          </span>
-          <span class="breakdown-value neg" id="br-iva">+ $0</span>
-        </div>
+                <div class="breakdown-row" id="br-row-impPais">
+                  <span class="breakdown-label">
+                    Impuesto PAIS
+                    <span class="impuesto-tag tag-red" id="br-impPaisTag">0%</span>
+                  </span>
+                  <span class="breakdown-value neg" id="br-impPais">+ $0</span>
+                </div>
 
-        <div class="breakdown-row" id="br-row-impPais">
-          <span class="breakdown-label">
-            Impuesto PAIS
-            <span class="impuesto-tag tag-red" id="br-impPaisTag">0%</span>
-          </span>
-          <span class="breakdown-value neg" id="br-impPais">+ $0</span>
-        </div>
+                <div class="breakdown-row" id="br-row-percepcion">
+                  <span class="breakdown-label">
+                    Percepcion AFIP
+                    <span class="impuesto-tag tag-red" id="br-percepcionTag">0%</span>
+                  </span>
+                  <span class="breakdown-value neg" id="br-percepcion">+ $0</span>
+                </div>
 
-        <div class="breakdown-row" id="br-row-percepcion">
-          <span class="breakdown-label">
-            Percepción AFIP
-            <span class="impuesto-tag tag-red" id="br-percepcionTag">0%</span>
-          </span>
-          <span class="breakdown-value neg" id="br-percepcion">+ $0</span>
-        </div>
+                <div class="breakdown-row" id="br-row-banco">
+                  <span class="breakdown-label">
+                    Recargo bancario
+                    <span class="impuesto-tag tag-purple" id="br-bancoTag">0%</span>
+                  </span>
+                  <span class="breakdown-value neg" id="br-banco">Sin recargo</span>
+                </div>
 
-        <div class="breakdown-row" id="br-row-banco">
-          <span class="breakdown-label">
-            Recargo bancario
-            <span class="impuesto-tag tag-purple" id="br-bancoTag">0%</span>
-          </span>
-          <span class="breakdown-value neg" id="br-banco">Sin recargo</span>
-        </div>
+                <div class="breakdown-row">
+                  <span class="breakdown-label">
+                    Aduana
+                    <span class="impuesto-tag tag-blue" id="br-aduanaTag">—</span>
+                  </span>
+                  <span class="breakdown-value neg" id="br-aduana">Franquicia OK</span>
+                </div>
 
-        <div class="breakdown-row">
-          <span class="breakdown-label">
-            Aduana
-            <span class="impuesto-tag tag-blue" id="br-aduanaTag">—</span>
-          </span>
-          <span class="breakdown-value neg" id="br-aduana">Franquicia OK</span>
-        </div>
+                <div class="breakdown-row breakdown-row--total">
+                  <span class="breakdown-label breakdown-label--total">TOTAL</span>
+                  <span class="breakdown-value total" id="br-total" aria-live="polite">$0</span>
+                </div>
 
+              </div>
 
+              <div class="warning-box" id="warningBox">
+                Estimacion basada en la normativa vigente en Argentina (2025). Los valores pueden variar segun banco, fecha y regulaciones de AFIP. Valido para compras personales via Correo Argentino / Puerta a Puerta (hasta USD 200 de franquicia).
+              </div>
 
-        <div class="breakdown-row breakdown-row--total">
-          <span class="breakdown-label breakdown-label--total">TOTAL</span>
-          <span class="breakdown-value total" id="br-total" aria-live="polite">$0</span>
-        </div>
-
-      </div>
-
-      <div class="warning-box" id="warningBox">
-        ⚠️ Estimación basada en la normativa vigente en Argentina (2025). Los valores pueden variar según banco, fecha y regulaciones de AFIP. Válido para compras personales vía Correo Argentino / Puerta a Puerta (hasta USD 200 de franquicia).
-      </div>
-
-      <button id="shareBtn" class="share-btn" data-html2canvas-ignore>
-        <span aria-hidden="true">📤</span> <span id="shareBtnText">Compartir cálculo</span>
-      </button>
-      <button id="downloadImgBtn" class="share-btn share-btn--secondary" data-html2canvas-ignore>
-        <span aria-hidden="true">🖼️</span> <span id="downloadImgBtnText">Descargar como Imagen</span>
-      </button>
-    </section>
+              <button id="shareBtn" class="share-btn" data-html2canvas-ignore>
+                <span aria-hidden="true">&#128228;</span> <span id="shareBtnText">Compartir calculo</span>
+              </button>
+              <button id="downloadImgBtn" class="share-btn share-btn--secondary" data-html2canvas-ignore>
+                <span aria-hidden="true">&#128444;&#65039;</span> <span id="downloadImgBtnText">Descargar como Imagen</span>
+              </button>
+            </section>
 
           </div> <!-- /calc-results -->
         </div> <!-- /calculator-layout -->
@@ -283,9 +281,9 @@
 
       <footer class="site-footer">
         <p>
-          Hecho por <a href="https://www.linkedin.com/in/rodrigo-antunez-9523a6380" target="_blank" rel="noopener">Rodrigo Antunez</a> ·
-          <a href="https://github.com/tuusuario/importaya" target="_blank" rel="noopener">Ver en GitHub</a>
-          · Datos: <a href="https://dolarapi.com" target="_blank" rel="noopener">DolarAPI</a> &amp; <a href="https://frankfurter.app" target="_blank" rel="noopener">Frankfurter</a>
+          Hecho por <a href="https://www.linkedin.com/in/rodrigo-antunez-9523a6380" target="_blank" rel="noopener">Rodrigo Antunez</a> &middot;
+          <a href="https://github.com/rodria45/ImportaYa" target="_blank" rel="noopener">Ver en GitHub</a>
+          &middot; Datos: <a href="https://dolarapi.com" target="_blank" rel="noopener">DolarAPI</a> &amp; <a href="https://open.er-api.com" target="_blank" rel="noopener">ExchangeRate-API</a>
         </p>
       </footer>
 
