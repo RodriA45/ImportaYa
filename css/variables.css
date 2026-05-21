@@ -1,13 +1,10 @@
 /**
- * variables.css — Sistema ÚNICO de variables CSS.
- * tokens.css fue fusionado aquí. No usar tokens.css.
- *
- * FIXES:
- *  - Unifica --accent / --cyan / --color-accent en un solo nombre
- *  - Agrega alias de compatibilidad para que componentes más viejos no rompan
+ * variables.css - Sistema de variables CSS (Dark Theme por defecto).
+ * Incluye LIGHT THEME OVERRIDES al final via [data-theme="light"].
  */
+
 :root {
-  /* ── Fondo y superficies ── */
+  /* Fondo y superficies */
   --bg:           #060a0f;
   --surface:      #0d1420;
   --surface2:     #111b2d;
@@ -21,7 +18,7 @@
   --color-surface-2: var(--surface2);
   --color-border:    var(--border);
 
-  /* ── Colores de acento ── */
+  /* Colores de acento */
   --cyan:        #00e5ff;
   --cyan-dim:    rgba(0,229,255,.12);
   --cyan-glow:   rgba(0,229,255,.25);
@@ -35,7 +32,7 @@
   --green-dim:   rgba(16,185,129,.12);
   --warn:        #f59e0b;
 
-  /* Alias "accent" para componentes generados dinámicamente */
+  /* Alias para componentes generados dinamicamente */
   --accent:        var(--cyan);
   --accent2:       var(--red);
   --accent3:       var(--purple);
@@ -46,19 +43,19 @@
   --color-gold:     var(--gold);
   --color-success:  var(--green);
 
-  /* ── Texto ── */
+  /* Texto */
   --text:       #dce8f7;
   --text-dim:   #8aa4c8;
   --muted:      #4d6585;
   --color-text:   var(--text);
   --color-muted:  var(--muted);
 
-  /* ── Tipografía ── */
+  /* Tipografia */
   --font-display: 'Bebas Neue', sans-serif;
   --font-body:    'DM Sans', sans-serif;
   --font-mono:    'JetBrains Mono', monospace;
 
-  /* ── Espaciado ── */
+  /* Espaciado */
   --space-xs:   .25rem;
   --space-sm:   .5rem;
   --space-md:   1rem;
@@ -66,41 +63,45 @@
   --space-xl:   2rem;
   --space-2xl:  3rem;
 
-  /* ── Bordes ── */
+  /* Bordes */
   --r-sm:   8px;
   --r-md:   12px;
   --r-lg:   16px;
   --r-xl:   20px;
   --r-pill: 999px;
 
-  /* Alias usados en components.css nuevo */
+  /* Alias radius */
   --radius-sm:  var(--r-sm);
   --radius-md:  var(--r-md);
   --radius-lg:  var(--r-lg);
   --radius-xl:  var(--r-xl);
   --radius-pill:var(--r-pill);
 
-  /* ── Sombras ── */
+  /* Sombras */
   --shadow-card: 0 4px 32px rgba(0,0,0,.4);
   --shadow-glow: 0 0 24px rgba(0,229,255,.1);
 
-  /* ── Transiciones ── */
+  /* Transiciones */
   --t-fast:   .15s ease;
   --t-normal: .25s ease;
   --t-spring: .4s cubic-bezier(.22,1,.36,1);
   --transition:      var(--t-normal);
   --transition-slow: var(--t-spring);
 
-  /* ── Z-index ── */
+  /* Z-index */
   --z-orb:  0;
   --z-base: 1;
+
+  /* Alias de transicion base para components.css */
+  --transition-base: var(--t-normal);
 }
 
-/* ════════════════════════════════
+/* ================================================
    LIGHT THEME OVERRIDES
-   ════════════════════════════════ */
+   Activo cuando <html data-theme="light">
+   ================================================ */
 [data-theme="light"] {
-  /* ── Fondo y superficies ── */
+  /* Fondo y superficies */
   --bg:           #f8fafc;
   --surface:      #ffffff;
   --surface2:     #f1f5f9;
@@ -108,20 +109,20 @@
   --border:       #cbd5e1;
   --border2:      #94a3b8;
 
-  /* Alias "color-*" usados en layout.css y components.css */
+  /* Alias color-* */
   --color-bg:        var(--bg);
   --color-surface:   var(--surface);
   --color-surface-2: var(--surface2);
   --color-border:    var(--border);
 
-  /* ── Texto ── */
+  /* Texto */
   --text:         #0f172a;
   --text-dim:     #334155;
   --muted:        #64748b;
   --color-text:   var(--text);
   --color-muted:  var(--muted);
 
-  /* ── Colores de acento optimizados para contraste en Light Theme ── */
+  /* Acentos adaptados para alto contraste en fondo claro */
   --cyan:         #0284c7;
   --cyan-dim:     rgba(2, 132, 199, 0.08);
   --cyan-glow:    rgba(2, 132, 199, 0.15);
@@ -135,7 +136,7 @@
   --green-dim:    rgba(5, 150, 105, 0.08);
   --warn:         #d97706;
 
-  /* Alias "accent" para componentes generados dinámicamente */
+  /* Alias accent */
   --accent:        var(--cyan);
   --accent2:       var(--red);
   --accent3:       var(--purple);
@@ -146,7 +147,7 @@
   --color-gold:     var(--gold);
   --color-success:  var(--green);
 
-  /* ── Sombras ── */
+  /* Sombras suaves para modo claro */
   --shadow-card:  0 10px 30px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.02);
   --shadow-glow:  0 0 20px rgba(2, 132, 199, 0.05);
 }
