@@ -1,14 +1,9 @@
 /**
- * state.js — Estado global reactivo de la aplicación.
- *
- * FIX: getCotizacionActiva() ya no devuelve 0 cuando las cotizaciones
- * aún no llegaron de la API. Devuelve el fallback de 1850 para "tarjeta"
- * y equivalentes para los demás tipos, así el cálculo funciona
- * inmediatamente al cargar la página.
+ * state.js - Estado global de la aplicacion.
  */
 const State = (() => {
 
-  // Valores de fallback usados ANTES de que responda la API
+  // Valores de fallback mientras la API no responde
   const FALLBACK_COT = {
     tarjeta: 1850,
     blue:    1820,
@@ -20,12 +15,8 @@ const State = (() => {
   };
 
   const data = {
-    // Cotizaciones (ARS por 1 USD) — parten en null, se llenan con API
-    cotizaciones: { ...FALLBACK_COT },   // <-- FIX: inicia con fallback, no con nulls
-
+    cotizaciones:      { ...FALLBACK_COT },
     dolarSeleccionado: 'tarjeta',
-
-    // Tasas de cambio a USD (1 XXX = ? USD)
     tasasAUSD: {
       usd:  1,
       eur:  1.08,
@@ -36,10 +27,7 @@ const State = (() => {
       btc:  67000,
       usdt: 1,
     },
-
-    // Tasas de cambio globales (1 USD = ? XXX) para otros países
     tasasGlobales: {},
-
     pais:        'AR',
     tienda:      'aliexpress',
     monedaInput: 'usd',
@@ -51,20 +39,17 @@ const State = (() => {
   const listeners = [];
 
   return {
-    get: (key) => data[key],
-    set: (key, val) => {
-      data[key] = val;
-      listeners.forEach(fn => fn(key, val));
-    },
-    getAll: () => ({ ...data }),
+    get:      (key) => data[key],
+    set:      (key, val) => { data[key] = val; listeners.forEach(fn => fn(key, val)); },
+    getAll:   () => ({ ...data }),
     onChange: (fn) => listeners.push(fn),
 
-    // FIX: nunca devuelve 0 — usa fallback si la cotización aún es null
     getCotizacionActiva() {
       const tipo = data.dolarSeleccionado;
       if (tipo === 'custom') {
-        const v = parseFloat(document.getElementById('customDolar')?.value);
-        return v > 0 ? v : FALLBACK_COT.tarjeta;
+        const el = document.getElementById('customDolar');
+        const v  = el ? parseFloat(el.value) : NaN;
+        return (v > 0) ? v : 0; // 0 = sin cotizacion valida aun
       }
       return data.cotizaciones[tipo] || FALLBACK_COT[tipo] || FALLBACK_COT.tarjeta;
     },
