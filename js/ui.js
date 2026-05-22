@@ -1,55 +1,177 @@
 /**
- * ui.js - Renderizado dinamico e interacciones del usuario.
+ * ui.js - Renderizado e interacciones de ImportaYa.
+ * Mejoras: cotizacion inline, localStorage, botones qty, animacion total,
+ *          estado vacio, boton limpiar.
  */
 
 const UI = (() => {
 
+  // ---- Labels dolar ----
   const DOLAR_LABELS = {
     tarjeta: { label: 'Tarjeta',   emoji: '\uD83D\uDCB3' },
     blue:    { label: 'Blue',      emoji: '\uD83D\uDD35' },
     oficial: { label: 'Oficial',   emoji: '\uD83C\uDFE6' },
-    mep:     { label: 'MEP/Bolsa', emoji: '\uD83D\uDCC8' },
+    mep:     { label: 'MEP',       emoji: '\uD83D\uDCC8' },
     ccl:     { label: 'CCL',       emoji: '\uD83C\uDF10' },
     cripto:  { label: 'Cripto',    emoji: '\u26A1'       },
     custom:  { label: 'Manual',    emoji: '\u270F\uFE0F' },
   };
 
-  // --- Dolar strip ---
+  // ---- Persistencia localStorage ----
+
+  const LS_KEY = 'importaya_state';
+
+  function saveToStorage() {
+    try {
+      var monedaInput = State.get('monedaInput');
+      var precioEl    = document.getElementById('precio-' + monedaInput);
+      var envioEl     = document.getElementById('envio');
+      var cantEl      = document.getElementById('cantidad');
+      var linkEl      = document.getElementById('linkProducto');
+      var customEl    = document.getElementById('customDolarInline');
+      var data = {
+        pais:             State.get('pais'),
+        tienda:           State.get('tienda'),
+        banco:            State.get('banco'),
+        dolarSeleccionado:State.get('dolarSeleccionado'),
+        monedaInput:      monedaInput,
+        precio:           precioEl   ? precioEl.value   : '',
+        envio:            envioEl    ? envioEl.value     : '0',
+        cantidad:         cantEl     ? cantEl.value      : '1',
+        link:             linkEl     ? linkEl.value      : '',
+        customDolar:      customEl   ? customEl.value    : '',
+      };
+      localStorage.setItem(LS_KEY, JSON.stringify(data));
+    } catch(e) { /* sin soporte */ }
+  }
+
+  function loadFromStorage() {
+    try {
+      var raw = localStorage.getItem(LS_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch(e) { return null; }
+  }
+
+  function applyStoredState(saved) {
+    if (!saved) return;
+    if (saved.pais)    State.set('pais', saved.pais);
+    if (saved.tienda)  State.set('tienda', saved.tienda);
+    if (saved.banco)   State.set('banco', saved.banco);
+    if (saved.dolarSeleccionado) State.set('dolarSeleccionado', saved.dolarSeleccionado);
+    if (saved.monedaInput)       State.set('monedaInput', saved.monedaInput);
+    if (saved.cantidad) State.set('cantidad', parseInt(saved.cantidad, 10) || 1);
+  }
+
+  function applyStoredDOM(saved) {
+    if (!saved) return;
+    var paisEl = document.getElementById('pais');
+    if (paisEl && saved.pais) {
+      paisEl.value = saved.pais;
+      var arSect = document.getElementById('arSection');
+      if (arSect) arSect.hidden = saved.pais !== 'AR';
+      var arCalc = document.getElementById('arSection-calc');
+      if (arCalc) arCalc.hidden = saved.pais !== 'AR';
+      var moEl = document.getElementById('monedaLocal');
+      var cfg  = CONFIG.paises[saved.pais];
+      if (moEl && cfg) moEl.value = cfg.moneda + ' \u2014 ' + cfg.monedaNombre;
+    }
+    var envioEl = document.getElementById('envio');
+    if (envioEl && saved.envio !== undefined) envioEl.value = saved.envio;
+
+    var cantEl = document.getElementById('cantidad');
+    var cantVal = document.getElementById('cantVal');
+    var qty = parseInt(saved.cantidad, 10) || 1;
+    if (cantEl)  cantEl.value       = qty;
+    if (cantVal) cantVal.textContent = qty;
+
+    var linkEl = document.getElementById('linkProducto');
+    if (linkEl && saved.link) linkEl.value = saved.link;
+
+    // restaurar precio en la tab correcta
+    if (saved.monedaInput && saved.precio) {
+      var precioEl = document.getElementById('precio-' + saved.monedaInput);
+      if (precioEl) precioEl.value = saved.precio;
+    }
+
+    // restaurar custom dolar inline
+    if (saved.customDolar) {
+      var ciEl = document.getElementById('customDolarInline');
+      if (ciEl) ciEl.value = saved.customDolar;
+      // sincronizar con el campo de cotizaciones
+      var cEl = document.getElementById('customDolar');
+      if (cEl) cEl.value = saved.customDolar;
+    }
+  }
+
+  // ---- Animacion del total ----
+
+  var _lastTotal = null;
+
+  function animateTotal(newText) {
+    var el = document.getElementById('totalPesos');
+    if (!el) return;
+    if (newText === _lastTotal) { el.textContent = newText; return; }
+    _lastTotal = newText;
+    el.classList.remove('total-animate');
+    void el.offsetWidth; // reflow para reiniciar animacion
+    el.textContent = newText;
+    el.classList.add('total-animate');
+  }
+
+  // ---- Estado vacio ----
+
+  function setResultVisible(visible) {
+    var empty   = document.getElementById('emptyState');
+    var content = document.getElementById('resultContent');
+    if (empty)   empty.style.display   = visible ? 'none'  : 'flex';
+    if (content) content.style.display = visible ? 'block' : 'none';
+  }
+
+  // ---- Dolar strip principal (vista Cotizaciones) ----
 
   function renderDolarStrip() {
-    const strip = document.getElementById('dolarStrip');
+    var strip = document.getElementById('dolarStrip');
     if (!strip) return;
 
-    const pais      = State.get('pais');
-    const titleEl   = document.getElementById('dolar-title');
-    const customRow = document.getElementById('customDolarRow');
-    const noteEl    = document.querySelector('#view-rates .note');
+    var pais      = State.get('pais');
+    var titleEl   = document.getElementById('dolar-title');
+    var customRow = document.getElementById('customDolarRow');
+    var noteEl    = document.getElementById('ratesNote');
 
     if (pais === 'AR') {
-      if (titleEl) titleEl.innerHTML = '\uD83D\uDCB1 Cotizaciones del dolar (hoy)';
-      if (noteEl)  noteEl.textContent = '* "Tarjeta" = tipo oficial + recargos vigentes de AFIP.';
+      if (titleEl) titleEl.textContent = '\uD83D\uDCB1 Cotizaciones del dolar (hoy)';
+      if (noteEl)  noteEl.textContent  = '* "Tarjeta" = tipo oficial + recargos de AFIP.';
 
-      const cotizaciones = State.get('cotizaciones');
-      const activo = State.get('dolarSeleccionado');
-      const orden  = ['tarjeta', 'blue', 'oficial', 'mep', 'ccl', 'cripto', 'custom'];
+      var cotizaciones = State.get('cotizaciones');
+      var activo  = State.get('dolarSeleccionado');
+      var orden   = ['tarjeta', 'blue', 'oficial', 'mep', 'ccl', 'cripto', 'custom'];
 
-      strip.innerHTML = orden.map(key => {
-        const info  = DOLAR_LABELS[key];
-        const valor = cotizaciones[key];
-        const valorStr = key === 'custom'
-          ? '\u270F\uFE0F'
-          : valor
-            ? '$' + Math.round(valor).toLocaleString('es-AR')
-            : '<span class="pill-loading">...</span>';
+      strip.innerHTML = orden.map(function(key) {
+        var info   = DOLAR_LABELS[key];
+        var valor  = cotizaciones[key];
+        var variacion = cotizaciones[key + '_var'] || null;
+
+        var valorStr;
+        if (key === 'custom') {
+          valorStr = '\u270F\uFE0F Personalizado';
+        } else if (valor) {
+          valorStr = '$' + Math.round(valor).toLocaleString('es-AR');
+          if (variacion !== null) {
+            var sign  = variacion >= 0 ? '+' : '';
+            var color = variacion >= 0 ? 'var(--color-success)' : 'var(--red)';
+            valorStr += '<span style="font-size:.65rem;color:' + color + ';margin-left:4px">' + sign + variacion + '%</span>';
+          }
+        } else {
+          valorStr = '<span class="pill-loading">...</span>';
+        }
 
         return '<div'
           + ' class="dolar-pill' + (activo === key ? ' active' : '') + '"'
-          + ' role="radio"'
-          + ' aria-checked="' + (activo === key) + '"'
-          + ' tabindex="0"'
+          + ' role="radio" aria-checked="' + (activo === key) + '" tabindex="0"'
           + ' data-key="' + key + '"'
           + ' onclick="UI.selectDolar(\'' + key + '\', this)"'
-          + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \') UI.selectDolar(\'' + key + '\', this)"'
+          + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \')UI.selectDolar(\'' + key + '\',this)"'
           + '>'
           + '<span class="dolar-pill__name">' + info.emoji + ' ' + info.label + '</span>'
           + '<span class="dolar-pill__value" id="val-' + key + '">' + valorStr + '</span>'
@@ -57,516 +179,542 @@ const UI = (() => {
       }).join('');
 
       if (customRow) customRow.hidden = activo !== 'custom';
-      _actualizarDolarTag(activo);
-
     } else {
-      const cfg = CONFIG.paises[pais];
+      var cfg = CONFIG.paises[pais];
       if (!cfg) return;
-
-      if (titleEl) titleEl.innerHTML = '\uD83D\uDCB1 Cotizacion del dolar en ' + cfg.nombre;
+      if (titleEl) titleEl.textContent = '\uD83D\uDCB1 Cotizacion del dolar en ' + cfg.nombre;
       if (customRow) customRow.hidden = true;
       if (noteEl) noteEl.textContent = '* Cotizacion de referencia obtenida de ExchangeRate-API.';
 
-      const tasasGlobales = State.get('tasasGlobales') || {};
-      const cotLocal = tasasGlobales[cfg.moneda] !== undefined
+      var tasasGlobales = State.get('tasasGlobales') || {};
+      var cotLocal = tasasGlobales[cfg.moneda] !== undefined
         ? tasasGlobales[cfg.moneda]
         : (CONFIG.fallbackLocal[pais] !== undefined ? CONFIG.fallbackLocal[pais] : 1);
-
-      const cotStr = cotLocal.toLocaleString('es-AR', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 4,
-      });
+      var cotStr = cotLocal.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 4 });
 
       strip.innerHTML = '<div class="dolar-pill active" style="max-width:320px;cursor:default;margin:0 auto" role="img">'
         + '<span class="dolar-pill__name">1 USD Oficial (' + cfg.moneda + ')</span>'
         + '<span class="dolar-pill__value">' + cfg.simbolo + cotStr + '</span>'
         + '</div>';
     }
+
+    // sincronizar strip mini de la calculadora
+    renderDolarStripMini();
+  }
+
+  // ---- Dolar strip mini (inline en Calculadora) ----
+
+  function renderDolarStripMini() {
+    var strip = document.getElementById('dolarStripMini');
+    if (!strip) return;
+
+    var pais = State.get('pais');
+    var arCalc = document.getElementById('arSection-calc');
+    if (arCalc) arCalc.hidden = pais !== 'AR';
+    if (pais !== 'AR') return;
+
+    var cotizaciones = State.get('cotizaciones');
+    var activo  = State.get('dolarSeleccionado');
+    var orden   = ['tarjeta', 'blue', 'oficial', 'mep', 'ccl', 'cripto', 'custom'];
+
+    strip.innerHTML = orden.map(function(key) {
+      var info  = DOLAR_LABELS[key];
+      var valor = cotizaciones[key];
+      var valStr = key === 'custom'
+        ? '\u270F'
+        : (valor ? '$' + Math.round(valor).toLocaleString('es-AR') : '...');
+
+      return '<div'
+        + ' class="dolar-pill dolar-pill--mini' + (activo === key ? ' active' : '') + '"'
+        + ' role="radio" aria-checked="' + (activo === key) + '" tabindex="0"'
+        + ' data-key="' + key + '"'
+        + ' onclick="UI.selectDolar(\'' + key + '\', this)"'
+        + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \')UI.selectDolar(\'' + key + '\',this)"'
+        + ' title="' + info.label + (valor ? ' $' + Math.round(valor).toLocaleString('es-AR') : '') + '"'
+        + '>'
+        + '<span class="dolar-pill__name">' + info.emoji + '</span>'
+        + '<span class="dolar-pill__value">' + valStr + '</span>'
+        + '</div>';
+    }).join('');
+
+    var inlineRow = document.getElementById('customDolarRowInline');
+    if (inlineRow) inlineRow.hidden = activo !== 'custom';
   }
 
   function selectDolar(key, el) {
     State.set('dolarSeleccionado', key);
 
-    document.querySelectorAll('.dolar-pill').forEach(p => {
+    // actualizar AMBOS strips
+    document.querySelectorAll('.dolar-pill').forEach(function(p) {
       p.classList.remove('active');
       p.setAttribute('aria-checked', 'false');
     });
-    el.classList.add('active');
-    el.setAttribute('aria-checked', 'true');
+    // activar todos los pills con ese key (puede ser en ambas vistas)
+    document.querySelectorAll('.dolar-pill[data-key="' + key + '"]').forEach(function(p) {
+      p.classList.add('active');
+      p.setAttribute('aria-checked', 'true');
+    });
 
-    const customRow = document.getElementById('customDolarRow');
-    if (customRow) customRow.hidden = key !== 'custom';
+    var customRow       = document.getElementById('customDolarRow');
+    var customRowInline = document.getElementById('customDolarRowInline');
+    if (customRow)       customRow.hidden       = key !== 'custom';
+    if (customRowInline) customRowInline.hidden = key !== 'custom';
 
     _actualizarDolarTag(key);
+    saveToStorage();
     Calculator.calcular();
   }
 
   function _actualizarDolarTag(key) {
-    const tag = document.getElementById('br-dolarTag');
+    var tag = document.getElementById('br-dolarTag');
     if (tag) tag.textContent = (DOLAR_LABELS[key] && DOLAR_LABELS[key].label) || key;
   }
 
-  // --- Tiendas ---
+  // ---- Tiendas ----
 
   function renderStores() {
-    const grid = document.getElementById('storesGrid');
+    var grid = document.getElementById('storesGrid');
     if (!grid) return;
-
-    const activo = State.get('tienda');
-    grid.innerHTML = CONFIG.tiendas.map(t =>
-      '<div'
-      + ' class="store-btn' + (activo === t.id ? ' active' : '') + '"'
-      + ' role="radio"'
-      + ' aria-checked="' + (activo === t.id) + '"'
-      + ' tabindex="0"'
-      + ' data-id="' + t.id + '"'
-      + ' onclick="UI.selectStore(\'' + t.id + '\', this)"'
-      + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \') UI.selectStore(\'' + t.id + '\', this)"'
-      + ' title="' + t.nombre + ' - Origen: ' + t.origen + '"'
-      + '>'
-      + '<span class="store-btn__emoji" aria-hidden="true">' + t.emoji + '</span>'
-      + t.nombre
-      + '</div>'
-    ).join('');
+    var activo = State.get('tienda');
+    grid.innerHTML = CONFIG.tiendas.map(function(t) {
+      return '<div'
+        + ' class="store-btn' + (activo === t.id ? ' active' : '') + '"'
+        + ' role="radio" aria-checked="' + (activo === t.id) + '" tabindex="0"'
+        + ' data-id="' + t.id + '"'
+        + ' onclick="UI.selectStore(\'' + t.id + '\', this)"'
+        + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \')UI.selectStore(\'' + t.id + '\',this)"'
+        + ' title="' + t.nombre + ' - Origen: ' + t.origen + '"'
+        + '>'
+        + '<span class="store-btn__emoji" aria-hidden="true">' + t.emoji + '</span>'
+        + t.nombre
+        + '</div>';
+    }).join('');
   }
 
   function selectStore(id, el) {
     State.set('tienda', id);
-
-    document.querySelectorAll('.store-btn').forEach(b => {
-      b.classList.remove('active');
-      b.setAttribute('aria-checked', 'false');
+    document.querySelectorAll('.store-btn').forEach(function(b) {
+      b.classList.remove('active'); b.setAttribute('aria-checked', 'false');
     });
-    el.classList.add('active');
-    el.setAttribute('aria-checked', 'true');
+    el.classList.add('active'); el.setAttribute('aria-checked', 'true');
 
-    const tienda = CONFIG.tiendas.find(t => t.id === id);
+    var tienda = CONFIG.tiendas.find(function(t) { return t.id === id; });
     if (tienda) {
-      const envioEl = document.getElementById('envio');
+      var envioEl = document.getElementById('envio');
       if (envioEl) envioEl.value = tienda.envioDefault;
-
-      const origenEl = document.getElementById('tiendaOrigen');
+      var origenEl = document.getElementById('tiendaOrigen');
       if (origenEl) origenEl.textContent = 'Origen: ' + tienda.origen;
     }
-
+    saveToStorage();
     Calculator.calcular();
   }
 
-  // --- Monedas ---
+  // ---- Monedas ----
 
   function renderCurrencyTabs() {
-    const tabsEl   = document.getElementById('currencyTabs');
-    const panelsEl = document.getElementById('currencyPanels');
+    var tabsEl   = document.getElementById('currencyTabs');
+    var panelsEl = document.getElementById('currencyPanels');
     if (!tabsEl || !panelsEl) return;
+    var activo = State.get('monedaInput');
 
-    const activo = State.get('monedaInput');
+    tabsEl.innerHTML = CONFIG.monedas.map(function(m) {
+      return '<div'
+        + ' class="tab' + (activo === m.id ? ' active' : '') + '"'
+        + ' role="tab" aria-selected="' + (activo === m.id) + '"'
+        + ' tabindex="' + (activo === m.id ? '0' : '-1') + '"'
+        + ' data-id="' + m.id + '"'
+        + ' onclick="UI.switchMoneda(\'' + m.id + '\', this)"'
+        + ' onkeydown="UI.handleTabKey(event, \'' + m.id + '\')"'
+        + ' title="' + m.nombre + '"'
+        + '>' + m.label + '</div>';
+    }).join('');
 
-    tabsEl.innerHTML = CONFIG.monedas.map(m =>
-      '<div'
-      + ' class="tab' + (activo === m.id ? ' active' : '') + '"'
-      + ' role="tab"'
-      + ' aria-selected="' + (activo === m.id) + '"'
-      + ' tabindex="' + (activo === m.id ? '0' : '-1') + '"'
-      + ' data-id="' + m.id + '"'
-      + ' onclick="UI.switchMoneda(\'' + m.id + '\', this)"'
-      + ' onkeydown="UI.handleTabKey(event, \'' + m.id + '\')"'
-      + ' title="' + m.nombre + '"'
-      + '>' + m.label + '</div>'
-    ).join('');
-
-    panelsEl.innerHTML = CONFIG.monedas.map(m =>
-      '<div'
-      + ' class="tab-panel' + (activo === m.id ? ' active' : '') + '"'
-      + ' id="panel-' + m.id + '"'
-      + ' role="tabpanel"'
-      + (activo !== m.id ? ' hidden' : '')
-      + '>'
-      + '<p style="margin-bottom:0.75rem;font-size:0.95rem;color:var(--color-muted)">Ingresa el precio del producto:</p>'
-      + '<div class="input-group">'
-      + '<span class="input-prefix" aria-hidden="true">' + m.simbolo + '</span>'
-      + '<input'
-      + ' type="number"'
-      + ' id="precio-' + m.id + '"'
-      + ' placeholder="' + (m.id === 'btc' ? 'ej: 0.0003' : 'ej: 29.99') + '"'
-      + ' min="0"'
-      + ' step="' + (m.id === 'btc' ? '0.00001' : '0.01') + '"'
-      + ' autocomplete="off"'
-      + ' onfocus="this.select()"'
-      + ' oninput="Calculator.calcular()"'
-      + ' aria-label="Precio en ' + m.nombre + '"'
-      + '>'
-      + '</div>'
-      + '</div>'
-    ).join('');
+    panelsEl.innerHTML = CONFIG.monedas.map(function(m) {
+      return '<div'
+        + ' class="tab-panel' + (activo === m.id ? ' active' : '') + '"'
+        + ' id="panel-' + m.id + '" role="tabpanel"'
+        + (activo !== m.id ? ' hidden' : '')
+        + '>'
+        + '<p style="margin-bottom:.75rem;font-size:.95rem;color:var(--color-muted)">Ingresa el precio:</p>'
+        + '<div class="input-group">'
+        + '<span class="input-prefix" aria-hidden="true">' + m.simbolo + '</span>'
+        + '<input type="number" id="precio-' + m.id + '"'
+        + ' placeholder="' + (m.id === 'btc' ? 'ej: 0.0003' : 'ej: 29.99') + '"'
+        + ' min="0" step="' + (m.id === 'btc' ? '0.00001' : '0.01') + '"'
+        + ' autocomplete="off" onfocus="this.select()"'
+        + ' oninput="Calculator.calcular(); UI.saveToStorage()"'
+        + ' aria-label="Precio en ' + m.nombre + '"'
+        + '>'
+        + '</div>'
+        + '</div>';
+    }).join('');
   }
 
   function switchMoneda(id, el) {
     State.set('monedaInput', id);
-
-    document.querySelectorAll('.tab').forEach(t => {
-      t.classList.remove('active');
-      t.setAttribute('aria-selected', 'false');
-      t.tabIndex = -1;
+    document.querySelectorAll('.tab').forEach(function(t) {
+      t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); t.tabIndex = -1;
     });
-    el.classList.add('active');
-    el.setAttribute('aria-selected', 'true');
-    el.tabIndex = 0;
-
-    document.querySelectorAll('.tab-panel').forEach(p => {
-      p.classList.remove('active');
-      p.hidden = true;
-    });
-    const panel = document.getElementById('panel-' + id);
+    el.classList.add('active'); el.setAttribute('aria-selected', 'true'); el.tabIndex = 0;
+    document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); p.hidden = true; });
+    var panel = document.getElementById('panel-' + id);
     if (panel) { panel.classList.add('active'); panel.hidden = false; }
-
     Calculator.calcular();
-    setTimeout(() => {
-      const inp = document.getElementById('precio-' + id);
-      if (inp) inp.focus();
-    }, 50);
+    saveToStorage();
+    setTimeout(function() { var inp = document.getElementById('precio-' + id); if (inp) inp.focus(); }, 50);
   }
 
   function handleTabKey(event, currentId) {
-    const ids = CONFIG.monedas.map(m => m.id);
-    const idx = ids.indexOf(currentId);
-    let next = -1;
+    var ids = CONFIG.monedas.map(function(m) { return m.id; });
+    var idx = ids.indexOf(currentId);
+    var next = -1;
     if (event.key === 'ArrowRight') next = (idx + 1) % ids.length;
     if (event.key === 'ArrowLeft')  next = (idx - 1 + ids.length) % ids.length;
     if (next >= 0) {
-      const nextEl = document.querySelector('[data-id="' + ids[next] + '"].tab');
+      var nextEl = document.querySelector('[data-id="' + ids[next] + '"].tab');
       if (nextEl) { nextEl.focus(); switchMoneda(ids[next], nextEl); }
     }
   }
 
-  // --- Bancos ---
+  // ---- Bancos ----
 
   function renderBancos() {
-    const grid = document.getElementById('bancosGrid');
+    var grid = document.getElementById('bancosGrid');
     if (!grid) return;
-
-    const activo = State.get('banco');
-    grid.innerHTML = CONFIG.bancos.map(b =>
-      '<div'
-      + ' class="bank-btn' + (activo === b.id ? ' active' : '') + '"'
-      + ' role="radio"'
-      + ' aria-checked="' + (activo === b.id) + '"'
-      + ' tabindex="0"'
-      + ' data-id="' + b.id + '"'
-      + ' onclick="UI.selectBanco(\'' + b.id + '\', this)"'
-      + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \') UI.selectBanco(\'' + b.id + '\', this)"'
-      + '>'
-      + '<div class="bank-dot" style="background:' + b.color + '" aria-hidden="true"></div>'
-      + b.nombre
-      + '</div>'
-    ).join('');
+    var activo = State.get('banco');
+    grid.innerHTML = CONFIG.bancos.map(function(b) {
+      return '<div'
+        + ' class="bank-btn' + (activo === b.id ? ' active' : '') + '"'
+        + ' role="radio" aria-checked="' + (activo === b.id) + '" tabindex="0"'
+        + ' data-id="' + b.id + '"'
+        + ' onclick="UI.selectBanco(\'' + b.id + '\', this)"'
+        + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \')UI.selectBanco(\'' + b.id + '\',this)"'
+        + '>'
+        + '<div class="bank-dot" style="background:' + b.color + '" aria-hidden="true"></div>'
+        + b.nombre
+        + '</div>';
+    }).join('');
   }
 
   function selectBanco(id, el) {
     State.set('banco', id);
-    document.querySelectorAll('.bank-btn').forEach(b => {
-      b.classList.remove('active');
-      b.setAttribute('aria-checked', 'false');
+    document.querySelectorAll('.bank-btn').forEach(function(b) {
+      b.classList.remove('active'); b.setAttribute('aria-checked', 'false');
     });
-    el.classList.add('active');
-    el.setAttribute('aria-checked', 'true');
+    el.classList.add('active'); el.setAttribute('aria-checked', 'true');
+    saveToStorage();
     Calculator.calcular();
   }
 
-  // --- Pais ---
+  // ---- Pais ----
 
   function onPaisChange() {
-    const pais = document.getElementById('pais') && document.getElementById('pais').value;
+    var pais = document.getElementById('pais') && document.getElementById('pais').value;
     if (!pais) return;
     State.set('pais', pais);
-
-    const cfg = CONFIG.paises[pais];
+    var cfg = CONFIG.paises[pais];
     if (cfg) {
-      const el = document.getElementById('monedaLocal');
+      var el = document.getElementById('monedaLocal');
       if (el) el.value = cfg.moneda + ' \u2014 ' + cfg.monedaNombre;
     }
-
-    const arSection = document.getElementById('arSection');
-    if (arSection) arSection.hidden = pais !== 'AR';
+    var arSect = document.getElementById('arSection');
+    if (arSect) arSect.hidden = pais !== 'AR';
+    var arCalc = document.getElementById('arSection-calc');
+    if (arCalc) arCalc.hidden = pais !== 'AR';
 
     renderDolarStrip();
+    saveToStorage();
     Calculator.calcular();
   }
 
-  // --- Link / URL parsing ---
+  // ---- Cantidad con botones +/- ----
+
+  function initQtyButtons() {
+    var cantEl  = document.getElementById('cantidad');
+    var cantVal = document.getElementById('cantVal');
+    var minus   = document.getElementById('qtyMinus');
+    var plus    = document.getElementById('qtyPlus');
+
+    function update(delta) {
+      var current = parseInt((cantEl && cantEl.value) || '1', 10);
+      var next    = Math.max(1, Math.min(50, current + delta));
+      if (cantEl)  cantEl.value       = next;
+      if (cantVal) cantVal.textContent = next;
+      State.set('cantidad', next);
+      saveToStorage();
+      Calculator.calcular();
+    }
+
+    if (minus) minus.addEventListener('click', function() { update(-1); });
+    if (plus)  plus.addEventListener('click',  function() { update(+1); });
+  }
+
+  // ---- Boton Limpiar ----
+
+  function limpiar() {
+    // Limpiar campos de precio
+    CONFIG.monedas.forEach(function(m) {
+      var el = document.getElementById('precio-' + m.id);
+      if (el) el.value = '';
+    });
+    // Envio a 0
+    var envioEl = document.getElementById('envio');
+    if (envioEl) envioEl.value = '0';
+    // Cantidad a 1
+    var cantEl  = document.getElementById('cantidad');
+    var cantVal = document.getElementById('cantVal');
+    if (cantEl)  cantEl.value       = 1;
+    if (cantVal) cantVal.textContent = 1;
+    State.set('cantidad', 1);
+    // Link vacio
+    var linkEl = document.getElementById('linkProducto');
+    if (linkEl) linkEl.value = '';
+    var linkInfo = document.getElementById('linkInfo');
+    if (linkInfo) { linkInfo.textContent = ''; linkInfo.style.color = ''; }
+    // Custom dolar vacio
+    var ci = document.getElementById('customDolarInline');
+    if (ci) ci.value = '';
+    var cd = document.getElementById('customDolar');
+    if (cd) cd.value = '';
+    // Mostrar estado vacio
+    setResultVisible(false);
+    clearAlert();
+    _lastTotal = null;
+    localStorage.removeItem(LS_KEY);
+    Calculator.calcular();
+  }
+
+  // ---- Link input ----
 
   function onLinkInput() {
-    const raw  = (document.getElementById('linkProducto') && document.getElementById('linkProducto').value) || '';
-    const link = raw.trim();
-    const info = document.getElementById('linkInfo');
-
+    var raw  = (document.getElementById('linkProducto') && document.getElementById('linkProducto').value) || '';
+    var link = raw.trim();
+    var info = document.getElementById('linkInfo');
     if (!link) {
       if (info) { info.textContent = ''; info.style.color = ''; }
       return;
     }
-
     if (!link.startsWith('http://') && !link.startsWith('https://')) {
-      if (info) {
-        info.textContent = 'Pega una URL completa que empiece con https://';
-        info.style.color = 'var(--gold)';
-      }
+      if (info) { info.textContent = 'Pega una URL completa (https://...)'; info.style.color = 'var(--gold)'; }
       return;
     }
-
-    for (const id in CONFIG.tiendaRegex) {
+    for (var id in CONFIG.tiendaRegex) {
       if (CONFIG.tiendaRegex[id].test(link)) {
-        const el = document.querySelector('[data-id="' + id + '"].store-btn');
+        var el = document.querySelector('[data-id="' + id + '"].store-btn');
         if (el) selectStore(id, el);
-
-        const t = CONFIG.tiendas.find(function(t) { return t.id === id; });
-        const nombre = (t && t.nombre) || id;
+        var t = CONFIG.tiendas.find(function(t) { return t.id === id; });
         if (info) {
-          info.innerHTML = 'Tienda detectada: <strong>' + nombre + '</strong>.<br>Por seguridad no podemos extraer el precio automaticamente. Por favor, ingresa el monto abajo.';
-          info.style.color = 'var(--green)';
+          info.innerHTML = 'Tienda detectada: <strong>' + ((t && t.nombre) || id) + '</strong>. Ingresa el precio abajo.';
+          info.style.color = 'var(--color-success)';
         }
         return;
       }
     }
-
-    if (info) {
-      info.textContent = 'Tienda no reconocida. Selecciona "Otra" e ingresa el precio.';
-      info.style.color = 'var(--gold)';
-    }
+    if (info) { info.textContent = 'Tienda no reconocida. Selecciona "Otra" e ingresa el precio.'; info.style.color = 'var(--gold)'; }
   }
 
-  // --- Cantidad ---
-
-  function onCantidadChange(val) {
-    const el = document.getElementById('cantVal');
-    if (el) el.textContent = val + ' ud.';
-    State.set('cantidad', parseInt(val, 10));
-    Calculator.calcular();
-  }
-
-  // --- Alertas ---
+  // ---- Alertas ----
 
   function showAlert(msg, type) {
-    type = type || 'warn';
-    const el = document.getElementById('alertBox');
+    var el = document.getElementById('alertBox');
     if (!el) return;
     el.textContent = msg;
     el.hidden = false;
-    el.className = 'alert-box alert-' + type;
+    el.className = 'alert-box alert-' + (type || 'warn');
   }
 
   function clearAlert() {
-    const el = document.getElementById('alertBox');
+    var el = document.getElementById('alertBox');
     if (el) el.hidden = true;
   }
 
-  // --- Theme (Dark/Light) ---
+  // ---- Theme ----
 
   function initTheme() {
-    const toggleBtn = document.getElementById('themeToggle');
-    if (!toggleBtn) return;
-
-    const savedTheme  = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
-
-    if (initialTheme === 'light') {
+    var btn = document.getElementById('themeToggle');
+    if (!btn) return;
+    var saved      = localStorage.getItem('theme');
+    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var theme = saved || (prefersDark ? 'dark' : 'light');
+    if (theme === 'light') {
       document.documentElement.setAttribute('data-theme', 'light');
-      toggleBtn.textContent = '\uD83C\uDF19';
+      btn.textContent = '\uD83C\uDF19';
     } else {
       document.documentElement.removeAttribute('data-theme');
-      toggleBtn.textContent = '\u2600\uFE0F';
+      btn.textContent = '\u2600\uFE0F';
     }
-
-    toggleBtn.addEventListener('click', function() {
-      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    btn.addEventListener('click', function() {
+      var isLight = document.documentElement.getAttribute('data-theme') === 'light';
       if (isLight) {
         document.documentElement.removeAttribute('data-theme');
         localStorage.setItem('theme', 'dark');
-        toggleBtn.textContent = '\u2600\uFE0F';
+        btn.textContent = '\u2600\uFE0F';
       } else {
         document.documentElement.setAttribute('data-theme', 'light');
         localStorage.setItem('theme', 'light');
-        toggleBtn.textContent = '\uD83C\uDF19';
+        btn.textContent = '\uD83C\uDF19';
       }
     });
   }
 
-  // --- Share ---
+  // ---- Share ----
 
   function onShare() {
-    const btn     = document.getElementById('shareBtn');
-    const btnText = document.getElementById('shareBtnText');
-    if (!btn || !btnText) return;
+    var btnText = document.getElementById('shareBtnText');
+    var pais    = State.get('pais');
+    var total   = (document.getElementById('totalPesos')   && document.getElementById('totalPesos').textContent)   || '$0';
+    var precio  = (document.getElementById('br-precioUSD') && document.getElementById('br-precioUSD').textContent) || 'USD 0';
+    var tidId   = State.get('tienda');
+    var tObj    = CONFIG.tiendas.find(function(t) { return t.id === tidId; });
+    var tienda  = (tObj && tObj.nombre) || 'Tienda';
 
-    const pais       = State.get('pais');
-    const totalPesos = (document.getElementById('totalPesos') && document.getElementById('totalPesos').textContent) || '$0';
-    const precioUSD  = (document.getElementById('br-precioUSD') && document.getElementById('br-precioUSD').textContent) || 'USD 0';
-    const tiendaId   = State.get('tienda');
-    const tiendaObj  = CONFIG.tiendas.find(function(t) { return t.id === tiendaId; });
-    const tienda     = (tiendaObj && tiendaObj.nombre) || 'Tienda';
-
-    var text = 'Calculo de ImportaYa\n';
-    text += 'Tienda: ' + tienda + '\n';
-    text += 'Precio + Envio: ' + precioUSD + '\n';
-    text += 'Total Estimado: ' + totalPesos + '\n';
-
+    var text = 'Calculo de ImportaYa\nTienda: ' + tienda + '\nPrecio + Envio: ' + precio + '\nTotal Estimado: ' + total;
     if (pais === 'AR') {
-      const dolarTag  = (document.getElementById('br-dolarTag') && document.getElementById('br-dolarTag').textContent) || 'Tarjeta';
-      const cotizacion = (document.getElementById('br-cotizacion') && document.getElementById('br-cotizacion').textContent) || '';
-      text += 'Cotizacion: ' + dolarTag + ' (' + cotizacion.split(' ')[0] + ')\n';
+      var tag = (document.getElementById('br-dolarTag') && document.getElementById('br-dolarTag').textContent) || 'Tarjeta';
+      text += '\nCotizacion: ' + tag;
     }
-
-    text += '\nCalcular otro producto: https://rodria45.github.io/ImportaYa/';
+    text += '\n\nCalcular: https://rodria45.github.io/ImportaYa/';
 
     if (navigator.share) {
-      navigator.share({ title: 'Calculo ImportaYa', text: text }).catch(function(err) {
-        console.warn('Error al compartir', err);
-      });
+      navigator.share({ title: 'Calculo ImportaYa', text: text }).catch(function() {});
     } else if (navigator.clipboard) {
       navigator.clipboard.writeText(text).then(function() {
-        var orig = btnText.textContent;
-        btnText.textContent = 'Copiado!';
-        setTimeout(function() { btnText.textContent = orig; }, 2000);
+        if (btnText) { var o = btnText.textContent; btnText.textContent = 'Copiado!'; setTimeout(function() { btnText.textContent = o; }, 2000); }
       });
     }
   }
 
-  // --- Navigation (SPA) ---
-
-  function initNavigation() {
-    const navBtns = document.querySelectorAll('.nav-btn');
-    const views   = document.querySelectorAll('.view-section');
-
-    navBtns.forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        var targetViewId = btn.getAttribute('data-view');
-
-        navBtns.forEach(function(b) { b.classList.remove('active'); });
-        btn.classList.add('active');
-
-        views.forEach(function(v) {
-          v.classList.remove('active');
-          v.hidden = true;
-          void v.offsetWidth;
-        });
-
-        var targetView = document.getElementById('view-' + targetViewId);
-        if (targetView) {
-          targetView.classList.add('active');
-          targetView.hidden = false;
-        }
-      });
-    });
-  }
-
-  // --- Export Image ---
+  // ---- Export Imagen ----
 
   function exportarComoImagen() {
-    var resultCard = document.querySelector('.result-card');
-    var btn        = document.getElementById('downloadImgBtn');
-    var btnText    = document.getElementById('downloadImgBtnText');
-    if (!resultCard || !btn || !btnText) return;
-
-    var originalText = btnText.textContent;
-
+    var card    = document.querySelector('.result-card');
+    var btn     = document.getElementById('downloadImgBtn');
+    var btnText = document.getElementById('downloadImgBtnText');
+    if (!card || !btn || !btnText) return;
     if (typeof html2canvas === 'undefined') {
-      showAlert('La exportacion de imagen requiere conexion a internet.', 'warn');
-      return;
+      showAlert('Exportar imagen requiere conexion a internet.', 'warn'); return;
     }
-
-    btn.disabled = true;
-    btnText.textContent = 'Generando...';
-
+    var orig = btnText.textContent;
+    btn.disabled = true; btnText.textContent = 'Generando...';
     var isLight = document.documentElement.getAttribute('data-theme') === 'light';
-    var bgColor = isLight ? '#ffffff' : '#0d1420';
+    html2canvas(card, { scale: 2, useCORS: true, backgroundColor: isLight ? '#ffffff' : '#0d1420', logging: false })
+      .then(function(canvas) {
+        canvas.toBlob(function(blob) {
+          if (!blob) return;
+          var file = new File([blob], 'importaya-' + Date.now() + '.png', { type: 'image/png' });
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            navigator.share({ files: [file], title: 'Calculo ImportaYa' }).catch(function(e) {
+              if (e.name !== 'AbortError') { _dl(canvas); }
+            });
+          } else { _dl(canvas); }
+        }, 'image/png');
+      })
+      .catch(function(e) { console.error('html2canvas:', e); })
+      .finally(function() {
+        setTimeout(function() { btn.disabled = false; btnText.textContent = orig; }, 500);
+      });
+  }
 
-    html2canvas(resultCard, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: bgColor,
-      logging: false,
-    }).then(function(canvas) {
-      canvas.toBlob(function(blob) {
-        if (!blob) { console.error('No se pudo generar la imagen'); return; }
-        var file = new File([blob], 'importaya-' + Date.now() + '.png', { type: 'image/png' });
+  function _dl(canvas) {
+    var a = document.createElement('a');
+    a.download = 'importaya-' + Date.now() + '.png';
+    a.href = canvas.toDataURL('image/png');
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  }
 
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          navigator.share({ files: [file], title: 'Calculo de ImportaYa' }).catch(function(err) {
-            if (err.name !== 'AbortError') { _downloadCanvas(canvas); }
-          });
-        } else {
-          _downloadCanvas(canvas);
-        }
-      }, 'image/png');
-    }).catch(function(err) {
-      console.error('Error exportando imagen:', err);
-    }).finally(function() {
-      setTimeout(function() {
-        btn.disabled = false;
-        btnText.textContent = originalText;
-      }, 500);
+  // ---- Navegacion SPA ----
+
+  function initNavigation() {
+    var navBtns = document.querySelectorAll('.nav-btn');
+    var views   = document.querySelectorAll('.view-section');
+    navBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var id = btn.getAttribute('data-view');
+        navBtns.forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        views.forEach(function(v) { v.classList.remove('active'); v.hidden = true; void v.offsetWidth; });
+        var target = document.getElementById('view-' + id);
+        if (target) { target.classList.add('active'); target.hidden = false; }
+      });
     });
   }
 
-  function _downloadCanvas(canvas) {
-    var dataUrl = canvas.toDataURL('image/png');
-    var a = document.createElement('a');
-    a.download = 'importaya-' + Date.now() + '.png';
-    a.href = dataUrl;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+  // ---- Custom Dolar Inline (sincroniza con el campo de Cotizaciones) ----
+
+  function syncCustomDolar(source) {
+    // source: 'inline' o 'rates'
+    var inlineEl = document.getElementById('customDolarInline');
+    var ratesEl  = document.getElementById('customDolar');
+    if (source === 'inline' && inlineEl && ratesEl) ratesEl.value = inlineEl.value;
+    if (source === 'rates'  && inlineEl && ratesEl) inlineEl.value = ratesEl.value;
+    saveToStorage();
+    Calculator.calcular();
   }
 
-  // --- Init ---
+  // ---- Init ----
 
   function init() {
     initTheme();
     initNavigation();
+
+    // Cargar estado guardado ANTES de renderizar
+    var saved = loadFromStorage();
+    if (saved) applyStoredState(saved);
+
     renderDolarStrip();
+    renderDolarStripMini();
     renderStores();
     renderCurrencyTabs();
     renderBancos();
+    initQtyButtons();
 
+    // Aplicar valores guardados al DOM DESPUES de renderizar
+    if (saved) applyStoredDOM(saved);
+
+    // Listeners basicos
     var paisEl = document.getElementById('pais');
     if (paisEl) paisEl.addEventListener('change', onPaisChange);
 
-    var customDolarEl = document.getElementById('customDolar');
-    if (customDolarEl) customDolarEl.addEventListener('input', Calculator.calcular);
+    // Custom dolar en cotizaciones (sincroniza al inline)
+    var ratesEl = document.getElementById('customDolar');
+    if (ratesEl) ratesEl.addEventListener('input', function() { syncCustomDolar('rates'); });
+
+    // Custom dolar inline (sincroniza al de cotizaciones)
+    var inlineEl = document.getElementById('customDolarInline');
+    if (inlineEl) inlineEl.addEventListener('input', function() { syncCustomDolar('inline'); });
 
     var envioEl = document.getElementById('envio');
-    if (envioEl) envioEl.addEventListener('input', Calculator.calcular);
-
-    var cantidadEl = document.getElementById('cantidad');
-    if (cantidadEl) cantidadEl.addEventListener('input', function(e) { onCantidadChange(e.target.value); });
+    if (envioEl) envioEl.addEventListener('input', function() { saveToStorage(); Calculator.calcular(); });
 
     var linkEl = document.getElementById('linkProducto');
     if (linkEl) linkEl.addEventListener('input', onLinkInput);
-
     var parseBtnEl = document.getElementById('parseBtn');
     if (parseBtnEl) parseBtnEl.addEventListener('click', onLinkInput);
 
-    var shareBtnEl = document.getElementById('shareBtn');
-    if (shareBtnEl) shareBtnEl.addEventListener('click', onShare);
+    var shareEl = document.getElementById('shareBtn');
+    if (shareEl) shareEl.addEventListener('click', onShare);
+    var dlEl = document.getElementById('downloadImgBtn');
+    if (dlEl) dlEl.addEventListener('click', exportarComoImagen);
 
-    var downloadBtnEl = document.getElementById('downloadImgBtn');
-    if (downloadBtnEl) downloadBtnEl.addEventListener('click', exportarComoImagen);
+    var clearBtnEl = document.getElementById('clearBtn');
+    if (clearBtnEl) clearBtnEl.addEventListener('click', limpiar);
+
+    // Mostrar estado inicial
+    var pais = State.get('pais');
+    var arSect = document.getElementById('arSection');
+    if (arSect) arSect.hidden = pais !== 'AR';
+    var arCalc = document.getElementById('arSection-calc');
+    if (arCalc) arCalc.hidden = pais !== 'AR';
 
     Calculator.calcular();
   }
 
   return {
-    init,
-    renderDolarStrip,
-    renderStores,
-    renderCurrencyTabs,
-    renderBancos,
-    selectDolar,
-    selectStore,
-    selectBanco,
-    switchMoneda,
-    handleTabKey,
-    onCantidadChange,
-    showAlert,
-    clearAlert,
+    init, saveToStorage, setResultVisible, animateTotal,
+    renderDolarStrip, renderDolarStripMini, renderStores,
+    renderCurrencyTabs, renderBancos,
+    selectDolar, selectStore, selectBanco,
+    switchMoneda, handleTabKey,
+    showAlert, clearAlert,
   };
 })();

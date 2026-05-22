@@ -164,3 +164,43 @@
 [data-theme="light"] .breakdown-row--total {
   border-top-color: rgba(2, 132, 199, 0.2);
 }
+
+/* ── New Improvements ── */
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--color-muted);
+}
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+  filter: grayscale(1);
+}
+
+/* Share Row */
+.share-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 20px;
+}
+.share-row .share-btn {
+  margin-top: 0;
+}
+
+/* Total Animation */
+.total-animate {
+  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes popIn {
+  0% { transform: scale(0.9); opacity: 0.5; }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
