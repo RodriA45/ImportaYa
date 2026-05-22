@@ -1,43 +1,34 @@
 /**
- * ui.js — Renderizado dinámico e interacciones del usuario.
- *
- * FIXES aplicados:
- *  - onLinkInput: trim() antes de procesar, muestra mensaje si campo vacío
- *  - parseBtn: llama a onLinkInput con trim correcto
- *  - br-dolarTag: se actualiza en renderDolarStrip() y en selectDolar()
- *  - selectCardType: restaura aria-checked en todos los botones
- *  - switchMoneda: no roba foco si el usuario está escribiendo en otro campo
+ * ui.js - Renderizado dinamico e interacciones del usuario.
  */
 
 const UI = (() => {
 
-  // ── Labels dólar ────────────────────────────────────────────────────────────
-
   const DOLAR_LABELS = {
-    tarjeta: { label: 'Tarjeta',   emoji: '💳' },
-    blue:    { label: 'Blue',      emoji: '🔵' },
-    oficial: { label: 'Oficial',   emoji: '🏦' },
-    mep:     { label: 'MEP/Bolsa', emoji: '📈' },
-    ccl:     { label: 'CCL',       emoji: '🌐' },
-    cripto:  { label: 'Cripto',    emoji: '⚡' },
-    custom:  { label: 'Manual',    emoji: '✏️' },
+    tarjeta: { label: 'Tarjeta',   emoji: '\uD83D\uDCB3' },
+    blue:    { label: 'Blue',      emoji: '\uD83D\uDD35' },
+    oficial: { label: 'Oficial',   emoji: '\uD83C\uDFE6' },
+    mep:     { label: 'MEP/Bolsa', emoji: '\uD83D\uDCC8' },
+    ccl:     { label: 'CCL',       emoji: '\uD83C\uDF10' },
+    cripto:  { label: 'Cripto',    emoji: '\u26A1'       },
+    custom:  { label: 'Manual',    emoji: '\u270F\uFE0F' },
   };
 
-  // ── Dólar strip ─────────────────────────────────────────────────────────────
+  // --- Dolar strip ---
 
   function renderDolarStrip() {
     const strip = document.getElementById('dolarStrip');
     if (!strip) return;
 
-    const pais = State.get('pais');
-    const titleEl = document.getElementById('dolar-title');
+    const pais      = State.get('pais');
+    const titleEl   = document.getElementById('dolar-title');
     const customRow = document.getElementById('customDolarRow');
-    const noteEl = document.querySelector('#view-rates .note');
+    const noteEl    = document.querySelector('#view-rates .note');
 
     if (pais === 'AR') {
-      if (titleEl) titleEl.innerHTML = '<span aria-hidden="true">💱</span> Cotizaciones del dólar (hoy)';
-      if (noteEl) noteEl.textContent = '* "Tarjeta" = tipo oficial + recargos vigentes de AFIP.';
-      
+      if (titleEl) titleEl.innerHTML = '\uD83D\uDCB1 Cotizaciones del dolar (hoy)';
+      if (noteEl)  noteEl.textContent = '* "Tarjeta" = tipo oficial + recargos vigentes de AFIP.';
+
       const cotizaciones = State.get('cotizaciones');
       const activo = State.get('dolarSeleccionado');
       const orden  = ['tarjeta', 'blue', 'oficial', 'mep', 'ccl', 'cripto', 'custom'];
@@ -46,51 +37,50 @@ const UI = (() => {
         const info  = DOLAR_LABELS[key];
         const valor = cotizaciones[key];
         const valorStr = key === 'custom'
-          ? '✏️'
+          ? '\u270F\uFE0F'
           : valor
-            ? `$${Math.round(valor).toLocaleString('es-AR')}`
-            : '<span class="pill-loading">…</span>';
+            ? '$' + Math.round(valor).toLocaleString('es-AR')
+            : '<span class="pill-loading">...</span>';
 
-        return `
-          <div
-            class="dolar-pill${activo === key ? ' active' : ''}"
-            role="radio"
-            aria-checked="${activo === key}"
-            tabindex="0"
-            data-key="${key}"
-            onclick="UI.selectDolar('${key}', this)"
-            onkeydown="if(event.key==='Enter'||event.key===' ') UI.selectDolar('${key}', this)"
-          >
-            <span class="dolar-pill__name">${info.emoji} ${info.label}</span>
-            <span class="dolar-pill__value" id="val-${key}">${valorStr}</span>
-          </div>`;
+        return '<div'
+          + ' class="dolar-pill' + (activo === key ? ' active' : '') + '"'
+          + ' role="radio"'
+          + ' aria-checked="' + (activo === key) + '"'
+          + ' tabindex="0"'
+          + ' data-key="' + key + '"'
+          + ' onclick="UI.selectDolar(\'' + key + '\', this)"'
+          + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \') UI.selectDolar(\'' + key + '\', this)"'
+          + '>'
+          + '<span class="dolar-pill__name">' + info.emoji + ' ' + info.label + '</span>'
+          + '<span class="dolar-pill__value" id="val-' + key + '">' + valorStr + '</span>'
+          + '</div>';
       }).join('');
 
       if (customRow) customRow.hidden = activo !== 'custom';
       _actualizarDolarTag(activo);
+
     } else {
       const cfg = CONFIG.paises[pais];
       if (!cfg) return;
 
-      if (titleEl) titleEl.innerHTML = `<span aria-hidden="true">💱</span> Cotización del dólar en ${cfg.nombre}`;
+      if (titleEl) titleEl.innerHTML = '\uD83D\uDCB1 Cotizacion del dolar en ' + cfg.nombre;
       if (customRow) customRow.hidden = true;
-      if (noteEl) noteEl.textContent = '* Cotización de referencia obtenida de ExchangeRate-API.';
+      if (noteEl) noteEl.textContent = '* Cotizacion de referencia obtenida de ExchangeRate-API.';
 
       const tasasGlobales = State.get('tasasGlobales') || {};
-      const cotLocal = tasasGlobales[cfg.moneda] ?? (CONFIG.fallbackLocal[pais] ?? 1);
+      const cotLocal = tasasGlobales[cfg.moneda] !== undefined
+        ? tasasGlobales[cfg.moneda]
+        : (CONFIG.fallbackLocal[pais] !== undefined ? CONFIG.fallbackLocal[pais] : 1);
 
-      // Formatear tasa
       const cotStr = cotLocal.toLocaleString('es-AR', {
         minimumFractionDigits: 0,
         maximumFractionDigits: 4,
       });
 
-      strip.innerHTML = `
-        <div class="dolar-pill active" style="max-width: 320px; cursor: default; margin: 0 auto;" role="img" aria-label="1 USD = ${cotStr} ${cfg.moneda}">
-          <span class="dolar-pill__name">1 USD Oficial (${cfg.moneda})</span>
-          <span class="dolar-pill__value">${cfg.simbolo}${cotStr}</span>
-        </div>
-      `;
+      strip.innerHTML = '<div class="dolar-pill active" style="max-width:320px;cursor:default;margin:0 auto" role="img">'
+        + '<span class="dolar-pill__name">1 USD Oficial (' + cfg.moneda + ')</span>'
+        + '<span class="dolar-pill__value">' + cfg.simbolo + cotStr + '</span>'
+        + '</div>';
     }
   }
 
@@ -107,40 +97,37 @@ const UI = (() => {
     const customRow = document.getElementById('customDolarRow');
     if (customRow) customRow.hidden = key !== 'custom';
 
-    // FIX: actualizar badge de cotización en el breakdown
     _actualizarDolarTag(key);
-
     Calculator.calcular();
   }
 
-  // FIX: función interna para mantener el tag sincronizado
   function _actualizarDolarTag(key) {
     const tag = document.getElementById('br-dolarTag');
-    if (tag) tag.textContent = DOLAR_LABELS[key]?.label || key;
+    if (tag) tag.textContent = (DOLAR_LABELS[key] && DOLAR_LABELS[key].label) || key;
   }
 
-  // ── Tiendas ─────────────────────────────────────────────────────────────────
+  // --- Tiendas ---
 
   function renderStores() {
     const grid = document.getElementById('storesGrid');
     if (!grid) return;
 
     const activo = State.get('tienda');
-    grid.innerHTML = CONFIG.tiendas.map(t => `
-      <div
-        class="store-btn${activo === t.id ? ' active' : ''}"
-        role="radio"
-        aria-checked="${activo === t.id}"
-        tabindex="0"
-        data-id="${t.id}"
-        onclick="UI.selectStore('${t.id}', this)"
-        onkeydown="if(event.key==='Enter'||event.key===' ') UI.selectStore('${t.id}', this)"
-        title="${t.nombre} · Origen: ${t.origen}"
-      >
-        <span class="store-btn__emoji" aria-hidden="true">${t.emoji}</span>
-        ${t.nombre}
-      </div>
-    `).join('');
+    grid.innerHTML = CONFIG.tiendas.map(t =>
+      '<div'
+      + ' class="store-btn' + (activo === t.id ? ' active' : '') + '"'
+      + ' role="radio"'
+      + ' aria-checked="' + (activo === t.id) + '"'
+      + ' tabindex="0"'
+      + ' data-id="' + t.id + '"'
+      + ' onclick="UI.selectStore(\'' + t.id + '\', this)"'
+      + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \') UI.selectStore(\'' + t.id + '\', this)"'
+      + ' title="' + t.nombre + ' - Origen: ' + t.origen + '"'
+      + '>'
+      + '<span class="store-btn__emoji" aria-hidden="true">' + t.emoji + '</span>'
+      + t.nombre
+      + '</div>'
+    ).join('');
   }
 
   function selectStore(id, el) {
@@ -159,13 +146,13 @@ const UI = (() => {
       if (envioEl) envioEl.value = tienda.envioDefault;
 
       const origenEl = document.getElementById('tiendaOrigen');
-      if (origenEl) origenEl.textContent = `Origen: ${tienda.origen}`;
+      if (origenEl) origenEl.textContent = 'Origen: ' + tienda.origen;
     }
 
     Calculator.calcular();
   }
 
-  // ── Monedas ─────────────────────────────────────────────────────────────────
+  // --- Monedas ---
 
   function renderCurrencyTabs() {
     const tabsEl   = document.getElementById('currencyTabs');
@@ -174,45 +161,43 @@ const UI = (() => {
 
     const activo = State.get('monedaInput');
 
-    tabsEl.innerHTML = CONFIG.monedas.map(m => `
-      <div
-        class="tab${activo === m.id ? ' active' : ''}"
-        role="tab"
-        aria-selected="${activo === m.id}"
-        tabindex="${activo === m.id ? '0' : '-1'}"
-        data-id="${m.id}"
-        onclick="UI.switchMoneda('${m.id}', this)"
-        onkeydown="UI.handleTabKey(event, '${m.id}')"
-        title="${m.nombre}"
-      >${m.label}</div>
-    `).join('');
+    tabsEl.innerHTML = CONFIG.monedas.map(m =>
+      '<div'
+      + ' class="tab' + (activo === m.id ? ' active' : '') + '"'
+      + ' role="tab"'
+      + ' aria-selected="' + (activo === m.id) + '"'
+      + ' tabindex="' + (activo === m.id ? '0' : '-1') + '"'
+      + ' data-id="' + m.id + '"'
+      + ' onclick="UI.switchMoneda(\'' + m.id + '\', this)"'
+      + ' onkeydown="UI.handleTabKey(event, \'' + m.id + '\')"'
+      + ' title="' + m.nombre + '"'
+      + '>' + m.label + '</div>'
+    ).join('');
 
-    panelsEl.innerHTML = CONFIG.monedas.map(m => `
-      <div
-        class="tab-panel${activo === m.id ? ' active' : ''}"
-        id="panel-${m.id}"
-        role="tabpanel"
-        ${activo !== m.id ? 'hidden' : ''}
-      >
-        <p style="margin-bottom: 0.75rem; font-size: 0.95rem; color: var(--text-muted);">
-          Ingresá el precio del producto:
-        </p>
-        <div class="input-group">
-          <span class="input-prefix" aria-hidden="true">${m.simbolo}</span>
-          <input
-            type="number"
-            id="precio-${m.id}"
-            placeholder="${m.id === 'btc' ? 'ej: 0.0003' : 'ej: 29.99'}"
-            min="0"
-            step="${m.id === 'btc' ? '0.00001' : '0.01'}"
-            autocomplete="off"
-            onfocus="this.select()"
-            oninput="Calculator.calcular()"
-            aria-label="Precio en ${m.nombre}"
-          >
-        </div>
-      </div>
-    `).join('');
+    panelsEl.innerHTML = CONFIG.monedas.map(m =>
+      '<div'
+      + ' class="tab-panel' + (activo === m.id ? ' active' : '') + '"'
+      + ' id="panel-' + m.id + '"'
+      + ' role="tabpanel"'
+      + (activo !== m.id ? ' hidden' : '')
+      + '>'
+      + '<p style="margin-bottom:0.75rem;font-size:0.95rem;color:var(--color-muted)">Ingresa el precio del producto:</p>'
+      + '<div class="input-group">'
+      + '<span class="input-prefix" aria-hidden="true">' + m.simbolo + '</span>'
+      + '<input'
+      + ' type="number"'
+      + ' id="precio-' + m.id + '"'
+      + ' placeholder="' + (m.id === 'btc' ? 'ej: 0.0003' : 'ej: 29.99') + '"'
+      + ' min="0"'
+      + ' step="' + (m.id === 'btc' ? '0.00001' : '0.01') + '"'
+      + ' autocomplete="off"'
+      + ' onfocus="this.select()"'
+      + ' oninput="Calculator.calcular()"'
+      + ' aria-label="Precio en ' + m.nombre + '"'
+      + '>'
+      + '</div>'
+      + '</div>'
+    ).join('');
   }
 
   function switchMoneda(id, el) {
@@ -231,12 +216,14 @@ const UI = (() => {
       p.classList.remove('active');
       p.hidden = true;
     });
-    const panel = document.getElementById(`panel-${id}`);
+    const panel = document.getElementById('panel-' + id);
     if (panel) { panel.classList.add('active'); panel.hidden = false; }
 
     Calculator.calcular();
-    // FIX: focus solo si el usuario hizo clic en el tab (no al inicializar)
-    setTimeout(() => document.getElementById(`precio-${id}`)?.focus(), 50);
+    setTimeout(() => {
+      const inp = document.getElementById('precio-' + id);
+      if (inp) inp.focus();
+    }, 50);
   }
 
   function handleTabKey(event, currentId) {
@@ -246,32 +233,32 @@ const UI = (() => {
     if (event.key === 'ArrowRight') next = (idx + 1) % ids.length;
     if (event.key === 'ArrowLeft')  next = (idx - 1 + ids.length) % ids.length;
     if (next >= 0) {
-      const nextEl = document.querySelector(`[data-id="${ids[next]}"].tab`);
+      const nextEl = document.querySelector('[data-id="' + ids[next] + '"].tab');
       if (nextEl) { nextEl.focus(); switchMoneda(ids[next], nextEl); }
     }
   }
 
-  // ── Bancos ───────────────────────────────────────────────────────────────────
+  // --- Bancos ---
 
   function renderBancos() {
     const grid = document.getElementById('bancosGrid');
     if (!grid) return;
 
     const activo = State.get('banco');
-    grid.innerHTML = CONFIG.bancos.map(b => `
-      <div
-        class="bank-btn${activo === b.id ? ' active' : ''}"
-        role="radio"
-        aria-checked="${activo === b.id}"
-        tabindex="0"
-        data-id="${b.id}"
-        onclick="UI.selectBanco('${b.id}', this)"
-        onkeydown="if(event.key==='Enter'||event.key===' ') UI.selectBanco('${b.id}', this)"
-      >
-        <div class="bank-dot" style="background:${b.color}" aria-hidden="true"></div>
-        ${b.nombre}
-      </div>
-    `).join('');
+    grid.innerHTML = CONFIG.bancos.map(b =>
+      '<div'
+      + ' class="bank-btn' + (activo === b.id ? ' active' : '') + '"'
+      + ' role="radio"'
+      + ' aria-checked="' + (activo === b.id) + '"'
+      + ' tabindex="0"'
+      + ' data-id="' + b.id + '"'
+      + ' onclick="UI.selectBanco(\'' + b.id + '\', this)"'
+      + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \') UI.selectBanco(\'' + b.id + '\', this)"'
+      + '>'
+      + '<div class="bank-dot" style="background:' + b.color + '" aria-hidden="true"></div>'
+      + b.nombre
+      + '</div>'
+    ).join('');
   }
 
   function selectBanco(id, el) {
@@ -285,94 +272,85 @@ const UI = (() => {
     Calculator.calcular();
   }
 
-  // ── País ─────────────────────────────────────────────────────────────────────
+  // --- Pais ---
 
   function onPaisChange() {
-    const pais = document.getElementById('pais')?.value;
+    const pais = document.getElementById('pais') && document.getElementById('pais').value;
     if (!pais) return;
     State.set('pais', pais);
 
     const cfg = CONFIG.paises[pais];
     if (cfg) {
       const el = document.getElementById('monedaLocal');
-      if (el) el.value = `${cfg.moneda} — ${cfg.monedaNombre}`;
+      if (el) el.value = cfg.moneda + ' \u2014 ' + cfg.monedaNombre;
     }
 
     const arSection = document.getElementById('arSection');
     if (arSection) arSection.hidden = pais !== 'AR';
 
-    // Rerenderizar cotizaciones para el nuevo país
     renderDolarStrip();
-
     Calculator.calcular();
   }
 
+  // --- Link / URL parsing ---
 
-
-  // ── Link / URL parsing ────────────────────────────────────────────────────────
-  // FIX PRINCIPAL: trim(), mensaje cuando campo vacío, manejo robusto
-
-  function onLinkInput(evento) {
-    // FIX: trim() para no fallar con espacios o saltos de línea
-    const raw  = document.getElementById('linkProducto')?.value || '';
+  function onLinkInput() {
+    const raw  = (document.getElementById('linkProducto') && document.getElementById('linkProducto').value) || '';
     const link = raw.trim();
     const info = document.getElementById('linkInfo');
 
-    // Si el campo está vacío, limpiar mensaje
     if (!link) {
       if (info) { info.textContent = ''; info.style.color = ''; }
       return;
     }
 
-    // FIX: validar que sea una URL antes de intentar parsear
     if (!link.startsWith('http://') && !link.startsWith('https://')) {
       if (info) {
-        info.textContent = '⚠️ Pegá una URL completa que empiece con https://';
+        info.textContent = 'Pega una URL completa que empiece con https://';
         info.style.color = 'var(--gold)';
       }
       return;
     }
 
-    // Buscar tienda por regex
-    for (const [id, regex] of Object.entries(CONFIG.tiendaRegex)) {
-      if (regex.test(link)) {
-        // Activar tienda visualmente
-        const el = document.querySelector(`[data-id="${id}"].store-btn`);
+    for (const id in CONFIG.tiendaRegex) {
+      if (CONFIG.tiendaRegex[id].test(link)) {
+        const el = document.querySelector('[data-id="' + id + '"].store-btn');
         if (el) selectStore(id, el);
 
-        const nombre = CONFIG.tiendas.find(t => t.id === id)?.nombre || id;
+        const t = CONFIG.tiendas.find(function(t) { return t.id === id; });
+        const nombre = (t && t.nombre) || id;
         if (info) {
-          info.innerHTML = `✅ Tienda detectada: <strong>${nombre}</strong>.<br>Por seguridad no podemos extraer el precio automáticamente. Por favor, ingresá el monto en la sección de abajo.`;
+          info.innerHTML = 'Tienda detectada: <strong>' + nombre + '</strong>.<br>Por seguridad no podemos extraer el precio automaticamente. Por favor, ingresa el monto abajo.';
           info.style.color = 'var(--green)';
         }
         return;
       }
     }
 
-    // No reconocida
     if (info) {
-      info.textContent = '⚠️ Tienda no reconocida. Seleccioná "Otra" e ingresá el precio.';
+      info.textContent = 'Tienda no reconocida. Selecciona "Otra" e ingresa el precio.';
       info.style.color = 'var(--gold)';
     }
   }
 
-  // ── Cantidad ──────────────────────────────────────────────────────────────────
+  // --- Cantidad ---
 
   function onCantidadChange(val) {
     const el = document.getElementById('cantVal');
-    if (el) el.textContent = `${val} ud.`;
-    State.set('cantidad', parseInt(val));
+    if (el) el.textContent = val + ' ud.';
+    State.set('cantidad', parseInt(val, 10));
     Calculator.calcular();
   }
 
-  // ── Alertas ───────────────────────────────────────────────────────────────────
+  // --- Alertas ---
 
-  function showAlert(msg, type = 'warn') {
+  function showAlert(msg, type) {
+    type = type || 'warn';
     const el = document.getElementById('alertBox');
     if (!el) return;
     el.textContent = msg;
     el.hidden = false;
-    el.className = `alert-box alert-${type}`;
+    el.className = 'alert-box alert-' + type;
   }
 
   function clearAlert() {
@@ -380,104 +358,98 @@ const UI = (() => {
     if (el) el.hidden = true;
   }
 
-  // ── Theme (Dark/Light) ────────────────────────────────────────────────────────
+  // --- Theme (Dark/Light) ---
 
   function initTheme() {
     const toggleBtn = document.getElementById('themeToggle');
     if (!toggleBtn) return;
 
-    const savedTheme = localStorage.getItem('theme');
+    const savedTheme  = localStorage.getItem('theme');
     const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
 
     if (initialTheme === 'light') {
       document.documentElement.setAttribute('data-theme', 'light');
-      toggleBtn.textContent = '🌙';
+      toggleBtn.textContent = '\uD83C\uDF19';
     } else {
       document.documentElement.removeAttribute('data-theme');
-      toggleBtn.textContent = '☀️';
+      toggleBtn.textContent = '\u2600\uFE0F';
     }
 
-    toggleBtn.addEventListener('click', () => {
+    toggleBtn.addEventListener('click', function() {
       const isLight = document.documentElement.getAttribute('data-theme') === 'light';
       if (isLight) {
         document.documentElement.removeAttribute('data-theme');
         localStorage.setItem('theme', 'dark');
-        toggleBtn.textContent = '☀️';
+        toggleBtn.textContent = '\u2600\uFE0F';
       } else {
         document.documentElement.setAttribute('data-theme', 'light');
         localStorage.setItem('theme', 'light');
-        toggleBtn.textContent = '🌙';
+        toggleBtn.textContent = '\uD83C\uDF19';
       }
     });
   }
 
-  // ── Share ────────────────────────────────────────────────────────────────────
+  // --- Share ---
 
-  async function onShare() {
-    const btn = document.getElementById('shareBtn');
+  function onShare() {
+    const btn     = document.getElementById('shareBtn');
     const btnText = document.getElementById('shareBtnText');
     if (!btn || !btnText) return;
 
-    const pais = State.get('pais');
-    const totalPesos = document.getElementById('totalPesos')?.textContent || '$0';
-    const precioUSD = document.getElementById('br-precioUSD')?.textContent || 'USD 0';
-    const tiendaId = State.get('tienda');
-    const tienda = CONFIG.tiendas.find(t => t.id === tiendaId)?.nombre || 'Tienda';
-    
-    let textToShare = `🛒 Cálculo de ImportaYa\n`;
-    textToShare += `📍 Tienda: ${tienda}\n`;
-    textToShare += `💵 Precio + Envío: ${precioUSD}\n`;
-    textToShare += `💳 Total Estimado: ${totalPesos}\n`;
-    
-    if (pais === 'AR') {
-      const dolarTag = document.getElementById('br-dolarTag')?.textContent || 'Tarjeta';
-      const cotizacion = document.getElementById('br-cotizacion')?.textContent || '';
-      textToShare += `💱 Cotización usada: ${dolarTag} (${cotizacion.split(' ')[0]})\n`;
-    }
-    
-    textToShare += `\nCalcular otro producto: https://rodria45.github.io/ImportaYa/`;
+    const pais       = State.get('pais');
+    const totalPesos = (document.getElementById('totalPesos') && document.getElementById('totalPesos').textContent) || '$0';
+    const precioUSD  = (document.getElementById('br-precioUSD') && document.getElementById('br-precioUSD').textContent) || 'USD 0';
+    const tiendaId   = State.get('tienda');
+    const tiendaObj  = CONFIG.tiendas.find(function(t) { return t.id === tiendaId; });
+    const tienda     = (tiendaObj && tiendaObj.nombre) || 'Tienda';
 
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: 'Cálculo ImportaYa',
-          text: textToShare,
-        });
-      } else {
-        await navigator.clipboard.writeText(textToShare);
-        const originalText = btnText.textContent;
-        btnText.textContent = '¡Copiado!';
-        setTimeout(() => { btnText.textContent = originalText; }, 2000);
-      }
-    } catch (err) {
-      console.warn('Error al compartir', err);
+    var text = 'Calculo de ImportaYa\n';
+    text += 'Tienda: ' + tienda + '\n';
+    text += 'Precio + Envio: ' + precioUSD + '\n';
+    text += 'Total Estimado: ' + totalPesos + '\n';
+
+    if (pais === 'AR') {
+      const dolarTag  = (document.getElementById('br-dolarTag') && document.getElementById('br-dolarTag').textContent) || 'Tarjeta';
+      const cotizacion = (document.getElementById('br-cotizacion') && document.getElementById('br-cotizacion').textContent) || '';
+      text += 'Cotizacion: ' + dolarTag + ' (' + cotizacion.split(' ')[0] + ')\n';
+    }
+
+    text += '\nCalcular otro producto: https://rodria45.github.io/ImportaYa/';
+
+    if (navigator.share) {
+      navigator.share({ title: 'Calculo ImportaYa', text: text }).catch(function(err) {
+        console.warn('Error al compartir', err);
+      });
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(function() {
+        var orig = btnText.textContent;
+        btnText.textContent = 'Copiado!';
+        setTimeout(function() { btnText.textContent = orig; }, 2000);
+      });
     }
   }
 
-  // ── Navigation (SPA) ────────────────────────────────────────────────────────
+  // --- Navigation (SPA) ---
 
   function initNavigation() {
     const navBtns = document.querySelectorAll('.nav-btn');
-    const views = document.querySelectorAll('.view-section');
+    const views   = document.querySelectorAll('.view-section');
 
-    navBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const targetViewId = btn.getAttribute('data-view');
-        
-        // Update Buttons
-        navBtns.forEach(b => b.classList.remove('active'));
+    navBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var targetViewId = btn.getAttribute('data-view');
+
+        navBtns.forEach(function(b) { b.classList.remove('active'); });
         btn.classList.add('active');
 
-        // Update Views
-        views.forEach(v => {
+        views.forEach(function(v) {
           v.classList.remove('active');
           v.hidden = true;
-          // Pequeño truco para forzar el reflow y reiniciar la animación
-          void v.offsetWidth; 
+          void v.offsetWidth;
         });
 
-        const targetView = document.getElementById(`view-${targetViewId}`);
+        var targetView = document.getElementById('view-' + targetViewId);
         if (targetView) {
           targetView.classList.add('active');
           targetView.hidden = false;
@@ -486,80 +458,66 @@ const UI = (() => {
     });
   }
 
-  // ── Export Image ─────────────────────────────────────────────────────────────
+  // --- Export Image ---
 
-  async function exportarComoImagen() {
-    const resultCard = document.querySelector('.result-card');
-    const btn = document.getElementById('downloadImgBtn');
-    const btnText = document.getElementById('downloadImgBtnText');
+  function exportarComoImagen() {
+    var resultCard = document.querySelector('.result-card');
+    var btn        = document.getElementById('downloadImgBtn');
+    var btnText    = document.getElementById('downloadImgBtnText');
     if (!resultCard || !btn || !btnText) return;
 
-    const originalText = btnText.textContent;
+    var originalText = btnText.textContent;
 
-    // Verificar si html2canvas está cargado (por si la PWA corre offline)
     if (typeof html2canvas === 'undefined') {
-      showAlert('La exportación de imagen requiere conexión a internet para cargar el motor de captura.', 'warn');
+      showAlert('La exportacion de imagen requiere conexion a internet.', 'warn');
       return;
     }
 
     btn.disabled = true;
     btnText.textContent = 'Generando...';
 
-    try {
-      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-      const bgColor = isLight ? '#ffffff' : '#0d1420';
+    var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    var bgColor = isLight ? '#ffffff' : '#0d1420';
 
-      // Opciones para html2canvas: alta calidad y compatibilidad con el tema activo
-      const canvas = await html2canvas(resultCard, {
-        scale: 2, // Doble resolución para que se vea nítido en pantallas retina/móviles
-        useCORS: true,
-        backgroundColor: bgColor, // Evita texto invisible en modo claro/oscuro
-        logging: false,
-      });
-
-      // Intentar compartir como archivo si el navegador lo soporta (menú nativo de compartir)
-      canvas.toBlob(async (blob) => {
-        if (!blob) throw new Error('No se pudo generar la imagen');
-        const file = new File([blob], `importaya-${Date.now()}.png`, { type: 'image/png' });
+    html2canvas(resultCard, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: bgColor,
+      logging: false,
+    }).then(function(canvas) {
+      canvas.toBlob(function(blob) {
+        if (!blob) { console.error('No se pudo generar la imagen'); return; }
+        var file = new File([blob], 'importaya-' + Date.now() + '.png', { type: 'image/png' });
 
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          try {
-            await navigator.share({
-              files: [file],
-              title: 'Cálculo de ImportaYa',
-              text: 'Resumen de mi estimación de importación.',
-            });
-            return; // Compartido con éxito nativamente
-          } catch (shareErr) {
-            // Si el usuario canceló el compartir nativo, no hacemos nada más
-            if (shareErr.name === 'AbortError') return;
-            console.warn('Fallo al compartir archivo, cayendo en descarga:', shareErr);
-          }
+          navigator.share({ files: [file], title: 'Calculo de ImportaYa' }).catch(function(err) {
+            if (err.name !== 'AbortError') { _downloadCanvas(canvas); }
+          });
+        } else {
+          _downloadCanvas(canvas);
         }
-
-        // Si no soporta compartir archivos o falló, hacemos la descarga automática tradicional
-        const dataUrl = canvas.toDataURL('image/png');
-        const link = document.createElement('a');
-        link.download = `importaya-${Date.now()}.png`;
-        link.href = dataUrl;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
       }, 'image/png');
-
-    } catch (err) {
+    }).catch(function(err) {
       console.error('Error exportando imagen:', err);
-    } finally {
-      // Restaurar botón después de un breve delay
-      setTimeout(() => {
+    }).finally(function() {
+      setTimeout(function() {
         btn.disabled = false;
         btnText.textContent = originalText;
       }, 500);
-    }
+    });
   }
 
-  // ── Init ──────────────────────────────────────────────────────────────────────
+  function _downloadCanvas(canvas) {
+    var dataUrl = canvas.toDataURL('image/png');
+    var a = document.createElement('a');
+    a.download = 'importaya-' + Date.now() + '.png';
+    a.href = dataUrl;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  // --- Init ---
 
   function init() {
     initTheme();
@@ -569,19 +527,29 @@ const UI = (() => {
     renderCurrencyTabs();
     renderBancos();
 
-    // Eventos
-    document.getElementById('pais')?.addEventListener('change', onPaisChange);
-    document.getElementById('customDolar')?.addEventListener('input', Calculator.calcular);
-    document.getElementById('envio')?.addEventListener('input', Calculator.calcular);
-    document.getElementById('cantidad')?.addEventListener('input', e => onCantidadChange(e.target.value));
+    var paisEl = document.getElementById('pais');
+    if (paisEl) paisEl.addEventListener('change', onPaisChange);
 
-    // FIX: tanto el input como el botón ANALIZAR usan la misma función con trim()
-    document.getElementById('linkProducto')?.addEventListener('input', onLinkInput);
-    document.getElementById('parseBtn')?.addEventListener('click', onLinkInput);
-    
-    // Botón Compartir
-    document.getElementById('shareBtn')?.addEventListener('click', onShare);
-    document.getElementById('downloadImgBtn')?.addEventListener('click', exportarComoImagen);
+    var customDolarEl = document.getElementById('customDolar');
+    if (customDolarEl) customDolarEl.addEventListener('input', Calculator.calcular);
+
+    var envioEl = document.getElementById('envio');
+    if (envioEl) envioEl.addEventListener('input', Calculator.calcular);
+
+    var cantidadEl = document.getElementById('cantidad');
+    if (cantidadEl) cantidadEl.addEventListener('input', function(e) { onCantidadChange(e.target.value); });
+
+    var linkEl = document.getElementById('linkProducto');
+    if (linkEl) linkEl.addEventListener('input', onLinkInput);
+
+    var parseBtnEl = document.getElementById('parseBtn');
+    if (parseBtnEl) parseBtnEl.addEventListener('click', onLinkInput);
+
+    var shareBtnEl = document.getElementById('shareBtn');
+    if (shareBtnEl) shareBtnEl.addEventListener('click', onShare);
+
+    var downloadBtnEl = document.getElementById('downloadImgBtn');
+    if (downloadBtnEl) downloadBtnEl.addEventListener('click', exportarComoImagen);
 
     Calculator.calcular();
   }

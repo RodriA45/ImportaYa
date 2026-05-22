@@ -90,7 +90,7 @@ body::before {
   border-radius: var(--radius-md);
   text-align: left;
   cursor: pointer;
-  transition: all var(--trans-fast), transform var(--t-fast);
+  transition: all var(--transition-fast), transform var(--t-fast);
   display: flex;
   align-items: center;
   gap: var(--space-md);
