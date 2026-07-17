@@ -4,6 +4,8 @@
 
 Sabé exactamente cuánto vas a pagar en pesos —o en la moneda de tu país— antes de confirmar una compra en AliExpress, Temu, Shein, Amazon y más.
 
+![ImportaYa Preview](./Importya.png)
+
 ![ImportaYa preview](https://img.shields.io/badge/status-activo-brightgreen?style=flat-square)
 ![Vanilla JS](https://img.shields.io/badge/stack-Vanilla%20JS-f7df1e?style=flat-square&logo=javascript)
 ![Sin dependencias](https://img.shields.io/badge/dependencias-ninguna-blue?style=flat-square)
